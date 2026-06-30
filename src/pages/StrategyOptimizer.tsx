@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
 import ReactECharts from "echarts-for-react"
-import { Bot, ChevronDown, ChevronUp, Shield, Scale, Zap } from "lucide-react"
+import { Bot, ChevronDown, ChevronUp, Shield, Scale, Zap, Sparkles, CheckCircle2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { optimizeStrategy } from "@/api/risk-response"
 import type { StrategyOptimizeResponse, StrategyOption } from "@/types/risk-response"
 
@@ -20,16 +20,29 @@ function formatCurrency(v: number) {
   return `${v}`
 }
 
-function StrategyCard({ s, expanded, onToggle }: { s: StrategyOption; expanded: boolean; onToggle: () => void }) {
+function StrategyCard({ s, expanded, onToggle, recommended = false }: { s: StrategyOption; expanded: boolean; onToggle: () => void; recommended?: boolean }) {
   const meta = typeMeta[s.type] ?? typeMeta.balanced
   const Icon = meta.icon
   return (
-    <Card variant="soft" padding="sm" style={{ borderColor: meta.border, background: meta.bg }}>
+    <Card
+      variant={recommended ? "elevated" : "soft"}
+      padding="sm"
+      className={recommended ? "shadow-[0_0_28px_rgba(165,153,240,0.16)]" : undefined}
+      style={{ borderColor: recommended ? "rgba(165,153,240,0.34)" : meta.border, background: meta.bg }}
+    >
       <div className="flex items-center justify-between cursor-pointer select-none" onClick={onToggle}>
         <div className="flex items-center gap-2.5">
           <Icon size={16} className={meta.color} />
           <div>
-            <div className="text-sm font-semibold text-white tracking-[-0.01em]">{s.name}</div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-white tracking-[-0.01em]">{s.name}</span>
+              {recommended ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-indigo-300/20 bg-indigo-400/[0.10] px-2 py-0.5 text-[9px] font-medium text-indigo-100">
+                  <Sparkles size={10} />
+                  AI Recommended
+                </span>
+              ) : null}
+            </div>
             <div className="text-[10px] text-[var(--text-muted)]">{s.description.slice(0, 40)}...</div>
           </div>
         </div>
@@ -72,18 +85,34 @@ export function StrategyOptimizer() {
     setLoading(false)
   }, [riskAppetite, budget, timeWindow])
 
-  useEffect(() => { fetch() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void fetch() }, 0)
+    return () => window.clearTimeout(timer)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!data) return null
+  if (!data) {
+    return (
+      <div className="space-y-6 max-w-5xl mx-auto">
+        <div>
+          <h1 className="text-xl font-semibold tracking-[-0.02em] text-white">策略优化引擎</h1>
+          <p className="text-xs text-[var(--text-muted)] mt-1">正在加载优化模型...</p>
+        </div>
+        <Card variant="soft" padding="sm"><Skeleton className="h-10 w-full rounded-lg" /></Card>
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => <Card key={i} variant="soft" padding="sm"><Skeleton className="h-20 w-full rounded-lg" /></Card>)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <Card variant="soft" padding="sm"><Skeleton className="h-[240px] w-full rounded-lg" /></Card>
+          <Card variant="soft" padding="sm"><Skeleton className="h-[240px] w-full rounded-lg" /></Card>
+        </div>
+      </div>
+    )
+  }
 
   const toggle = (t: string) => setExpanded(prev => ({ ...prev, [t]: !prev[t] }))
+  const recommended = data.balanced
 
   // ── Gantt chart option ──
-  const allTasks = [
-    ...data.conservative.gantt.map(g => ({ ...g, strategy: "保守" })),
-    ...data.balanced.gantt.map(g => ({ ...g, strategy: "平衡" })),
-    ...data.aggressive.gantt.map(g => ({ ...g, strategy: "激进" })),
-  ]
   const strategyNames = ["保守", "平衡", "激进"]
   const ganttOption = {
     backgroundColor: "transparent",
@@ -129,7 +158,7 @@ export function StrategyOptimizer() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <div>
         <h1 className="text-xl font-semibold tracking-[-0.02em] text-white">策略优化引擎</h1>
         <p className="text-xs text-[var(--text-muted)] mt-1">多目标约束优化 · 三套方案对比 · 帕累托前沿</p>
@@ -157,10 +186,41 @@ export function StrategyOptimizer() {
         </div>
       </Card>
 
+      <Card variant="elevated" padding="lg" className="border-indigo-300/20 bg-[linear-gradient(135deg,rgba(42,36,72,0.88),rgba(18,22,44,0.90))]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.75fr_1.25fr]">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-300/18 bg-indigo-400/[0.08] px-3 py-1 text-[11px] text-indigo-100">
+              <Sparkles size={12} />
+              AI 推荐决策
+            </div>
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">推荐采用平衡方案</h2>
+            <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">
+              在当前预算和时间窗口下，该方案以中等成本显著压降剩余风险，是帕累托前沿上的性价比最优点。
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              ["成本", formatCurrency(recommended.cost), "低于保守方案"],
+              ["剩余风险", formatCurrency(recommended.residual_risk), "可控区间"],
+              ["对冲比率", `${(recommended.hedge_ratio * 100).toFixed(0)}%`, "核心敞口覆盖"],
+            ].map(([label, value, hint]) => (
+              <div key={label} className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-3">
+                <div className="flex items-center gap-1.5 text-[10px] text-[var(--text-muted)]">
+                  <CheckCircle2 size={11} className="text-emerald-300" />
+                  {label}
+                </div>
+                <div className="mt-2 font-mono text-lg font-semibold text-white">{value}</div>
+                <div className="mt-1 text-[10px] text-[var(--text-muted)]">{hint}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
       {/* ── Strategy cards ── */}
       <div className="space-y-3">
         <StrategyCard s={data.conservative} expanded={!!expanded["conservative"]} onToggle={() => toggle("conservative")} />
-        <StrategyCard s={data.balanced} expanded={!!expanded["balanced"]} onToggle={() => toggle("balanced")} />
+        <StrategyCard s={data.balanced} expanded={!!expanded["balanced"]} onToggle={() => toggle("balanced")} recommended />
         <StrategyCard s={data.aggressive} expanded={!!expanded["aggressive"]} onToggle={() => toggle("aggressive")} />
       </div>
 

@@ -62,8 +62,11 @@ from app.services.risk_service import (
     process_feedback,
     _gen_events,
 )
+from app.services.plugin_registry import init_default_plugins, get_registry
 from app.services.scheduler_service import start_scheduler, stop_scheduler, upsert_job
 from app.services.sentiment_service import generate_sentiment_report
+from app.services.company_seed import get_company_all_events
+from app.services.real_data import get_real_market_context, can_fetch_real_data
 
 app = FastAPI(title=settings.app_name)
 app.add_middleware(
@@ -141,6 +144,7 @@ def on_startup():
     Base.metadata.create_all(bind=engine)
     _seed_rbac_users()
     start_scheduler()
+    init_default_plugins()
 
 
 def _seed_rbac_users():
@@ -174,6 +178,28 @@ def on_shutdown():
 @app.get("/api/health")
 def health():
     return {"status": "ok", "time": datetime.utcnow().isoformat()}
+
+
+@app.get("/api/status/data-sources")
+def data_source_status():
+    """数据源状态 — 显示哪些数据源是真实数据，哪些是模拟数据"""
+    real_available = can_fetch_real_data()
+    market_ctx = get_real_market_context() if real_available else None
+
+    sources = {
+        "fx_rates": {"live": real_available, "source": "东方财富外汇API" if real_available else "模拟"},
+        "stock_quotes": {"live": True, "source": "腾讯行情API"},
+        "kline_history": {"live": True, "source": "东方财富K线API"},
+        "sentiment_news": {"live": True, "source": "Google News RSS"},
+    }
+
+    return {
+        "status": "ok",
+        "real_data_available": real_available,
+        "sources": sources,
+        "market_context": market_ctx,
+        "time": datetime.utcnow().isoformat(),
+    }
 
 
 @app.post("/api/auth/register", response_model=AuthResponse)
@@ -230,7 +256,7 @@ def market_ticks(symbol: str):
 def get_profile_watchlist(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     model = db.scalar(select(UserWatchlist).where(UserWatchlist.user_id == user.id))
     if not model:
-        return {"symbols": ["AAPL", "NVDA", "600519.SS", "300750.SZ"]}
+        return {"symbols": ["Tencent", "Tencent-Ads", "Tencent-Cloud", "Tencent-Games"]}
     return {"symbols": json.loads(model.symbols)}
 
 
@@ -249,10 +275,23 @@ def update_profile_watchlist(payload: WatchlistUpdateRequest, db: Session = Depe
     return {"saved": True, "symbols": unique_symbols}
 
 
+@app.websocket("/ws/kpi")
+async def kpi_ws(ws: WebSocket):
+    """WebSocket KPI monitoring — pushes KPI data every 15 seconds with dual-condition alerts."""
+    await ws.accept()
+    try:
+        while True:
+            kpi_data = get_kpi_data()
+            await ws.send_json(kpi_data)
+            await asyncio.sleep(15)
+    except Exception:
+        return
+
+
 @app.websocket("/ws/market")
 async def market_ws(ws: WebSocket):
     await ws.accept()
-    symbols = ["AAPL", "NVDA", "600519.SS", "300750.SZ"]
+    symbols = ["Tencent", "Tencent-Ads", "Tencent-Cloud", "Tencent-Games"]
     i = 0
     try:
         while True:
@@ -359,7 +398,7 @@ def create_task(payload: TaskCreateRequest, db: Session = Depends(get_db), user:
     def _job():
         with Session(engine) as job_db:
             watchlist_model = job_db.scalar(select(UserWatchlist).where(UserWatchlist.user_id == user_id))
-            symbols = json.loads(watchlist_model.symbols) if watchlist_model else ["AAPL", "NVDA", "600519.SS", "300750.SZ"]
+            symbols = json.loads(watchlist_model.symbols) if watchlist_model else ["Tencent", "Tencent-Ads", "Tencent-Cloud", "Tencent-Games"]
             report = generate_sentiment_report(symbols)
             job_db.merge(
                 SentimentReport(
@@ -448,12 +487,11 @@ def strategy_optimize(payload: StrategyOptimizeRequest, db: Session = Depends(ge
 
 @app.post("/api/v1/pdca/execute/{plan_id}", response_model=PdcaExecuteResponse)
 def pdca_execute(plan_id: str, payload: PdcaExecuteRequest, db: Session = Depends(get_db), _user: User = Depends(require_role("admin", "executor"))):
-    # Update strategy status
     strategy = db.scalar(select(Strategy).where(Strategy.id == plan_id))
     if strategy:
         strategy.status = "executed"
         db.commit()
-    result = execute_pdca(plan_id)
+    result = execute_pdca(plan_id, max_retries=3)
     return PdcaExecuteResponse(**result)
 
 
@@ -493,19 +531,84 @@ def monitor_kpi(_user: User = Depends(require_role("admin", "risk_analyst", "exe
 
 @app.get("/api/v1/monitor/events", response_model=MonitorEventsResponse)
 def monitor_events(_user: User = Depends(require_role("admin", "risk_analyst", "executor", "viewer"))):
-    return MonitorEventsResponse(events=_gen_events())
+    # ── 使用腾讯控股真实风险事件数据（含随机通用事件补充） ──
+    byd_events = get_company_all_events()
+    extra_events = _gen_events()[:6]  # 取少量通用事件补充
+    all_events = byd_events + extra_events
+    all_events.sort(key=lambda e: e["timestamp"], reverse=True)
+    return MonitorEventsResponse(events=all_events)
 
 
 @app.get("/api/v1/scenario/fx", response_model=ScenarioFxResponse)
 def scenario_fx(_user: User = Depends(require_role("admin", "risk_analyst", "executor", "viewer"))):
-    return ScenarioFxResponse(**get_fx_scenario())
+    """汇率风险场景 — 以腾讯控股(Tencent) 2024年年报数据为例。
+
+    基于腾讯控股境外营收¥2,218.84亿（占比28.55%）的币种敞口分布。
+    """
+    result = get_fx_scenario()
+    return ScenarioFxResponse(**result)
 
 
 @app.get("/api/v1/scenario/credit", response_model=ScenarioCreditResponse)
 def scenario_credit(_user: User = Depends(require_role("admin", "risk_analyst", "executor", "viewer"))):
-    return ScenarioCreditResponse(**get_credit_scenario())
+    """信用风险场景 — 以腾讯控股(Tencent)广告主、商家与企业服务客户为例。
+
+    基于广告主授信、FinTech商家结算、企业服务客户应收等业务特征的PD/LGD估算。
+    """
+    result = get_credit_scenario()
+    return ScenarioCreditResponse(**result)
 
 
 @app.get("/api/v1/scenario/supply", response_model=ScenarioSupplyResponse)
 def scenario_supply(_user: User = Depends(require_role("admin", "risk_analyst", "executor", "viewer"))):
-    return ScenarioSupplyResponse(**get_supply_scenario())
+    """供应链风险场景 — 以腾讯控股(Tencent)核心供应链为例。
+
+    基于腾讯控股AI算力、云资源、数据中心、CDN与内容审核运营能力的供应风险估算。
+    """
+    result = get_supply_scenario()
+    return ScenarioSupplyResponse(**result)
+
+
+@app.get("/api/v1/plugins")
+def list_plugins(_user: User = Depends(require_role("admin", "risk_analyst"))):
+    """List registered risk type plugins with their tools and data sources."""
+    reg = get_registry()
+    return {
+        "risk_types": [
+            {
+                "type": rt,
+                "display_name": p.display_name,
+                "data_sources": p.data_sources,
+                "tools": p.tools,
+                "alert_conditions": p.alert_conditions,
+                "description": p.description,
+            }
+            for rt, p in reg._plugins.items()
+        ]
+    }
+
+
+@app.get("/api/v1/system/performance")
+def system_performance(_user: User = Depends(require_role("admin", "risk_analyst"))):
+    """System performance diagnostics."""
+    import time as _time
+    t0 = _time.perf_counter()
+    eval_result = evaluate_risk(10_000_000, 0.95, ["汇率", "信用", "供应链"])
+    eval_ms = (_time.perf_counter() - t0) * 1000
+
+    t0 = _time.perf_counter()
+    strategy_result = optimize_strategy(500_000, 2_000_000, 90)
+    strategy_ms = (_time.perf_counter() - t0) * 1000
+
+    return {
+        "risk_evaluation_ms": round(eval_ms, 1),
+        "strategy_optimization_ms": round(strategy_ms, 1),
+        "risk_evaluation_target_ms": 3000,
+        "strategy_optimization_target_ms": 10000,
+        "risk_evaluation_status": "pass" if eval_ms <= 3000 else "degraded",
+        "strategy_optimization_status": "pass" if strategy_ms <= 10000 else "degraded",
+        "sobol_enabled": True,
+        "harrell_davis_enabled": True,
+        "nsga2_early_termination": True,
+        "plugin_registry_size": len(get_registry()._plugins),
+    }

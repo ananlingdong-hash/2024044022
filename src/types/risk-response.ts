@@ -17,6 +17,17 @@ export interface RiskEvaluateResponse {
   var_table: VarEntry[]
   factor_contributions: FactorContribution[]
   time_sensitivity_hours: number
+  elapsed_ms?: number
+  assumptions?: Record<string, string>
+  var_table_detailed?: VarEntryDetailed[]
+}
+
+export interface VarEntryDetailed extends VarEntry {
+  cvar?: number
+  simulations?: number
+  elapsed_ms?: number
+  technique?: string
+  sample_size?: number
 }
 
 export interface GanttTask {
@@ -24,6 +35,8 @@ export interface GanttTask {
   start: number
   end: number
   milestone: string
+  estimated_hours?: number
+  role?: string
 }
 
 export interface StrategyOption {
@@ -36,6 +49,9 @@ export interface StrategyOption {
   safety_stock_days: number
   description: string
   gantt: GanttTask[]
+  feasibility_warnings?: string[]
+  assumptions?: Record<string, string>
+  actions?: string[]
 }
 
 export interface StrategyOptimizeResponse {
@@ -43,6 +59,13 @@ export interface StrategyOptimizeResponse {
   balanced: StrategyOption
   aggressive: StrategyOption
   scatter_data: { name: string; type: string; cost: number; residual_risk: number }[]
+  optimization_meta?: {
+    generations: number
+    pareto_size: number
+    converged: boolean
+    hypervolume?: number
+    elapsed_ms?: number
+  }
 }
 
 export interface PdcaExecuteResponse {
@@ -92,11 +115,46 @@ export interface FxExposureItem {
   hedged_pnl: number[]
 }
 
+export interface FxExposureItem {
+  currency: string
+  exposure: number
+  hedge_ratio: number
+  hedge_cost: number
+  period_30d: number
+  period_60d: number
+  period_90d: number
+  unhedged_pnl: number[]
+  hedged_pnl: number[]
+  historical_vol?: number
+  implied_vol?: number
+  vol_spread_pct?: number
+}
+
+export interface NaturalHedgeScore {
+  match_score: number
+  net_receivable: number
+  net_payable: number
+  recommendation: string
+}
+
 export interface ScenarioFxResponse {
   exposures: FxExposureItem[]
   total_exposure: number
   coverage_ratio: number
   alerts: string[]
+  natural_hedge_scores?: Record<string, NaturalHedgeScore>
+  assumptions?: string[]
+  company_context?: CompanyContext
+}
+
+export interface CompanyContext {
+  company: string
+  ticker: string
+  fiscal_year: number
+  headline: string
+  key_metrics: Record<string, string | number>
+  data_source: string
+  disclaimer: string
 }
 
 export interface CreditPdLgdItem {
@@ -106,12 +164,19 @@ export interface CreditPdLgdItem {
   ead: number
   raroc: number
   rating: string
+  sentiment?: number
+  cox_pd?: number
+  cox_hazard_ratio?: number
+  censored?: boolean
 }
 
 export interface ScenarioCreditResponse {
   pd_lgd_table: CreditPdLgdItem[]
   portfolio_npl_forecast: number[]
   optimization_suggestions: string[]
+  sentiment_triggers?: string[]
+  assumptions?: string[]
+  company_context?: CompanyContext
 }
 
 export interface SupplierItem {
@@ -121,6 +186,18 @@ export interface SupplierItem {
   lead_time_days: number
   safety_stock_recommendation: number
   is_alternative: boolean
+  geo_region?: string
+  geo_score?: number
+  switching_cost?: number
+  composite_score?: number
+  category?: string
+}
+
+export interface CascadeImpact {
+  primary_disruption: number
+  secondary_cascade_prob: number
+  affected_alternative: string
+  estimated_impact_days: number
 }
 
 export interface ScenarioSupplyResponse {
@@ -128,6 +205,9 @@ export interface ScenarioSupplyResponse {
   disruption_forecast: { day: number; probability: number }[]
   material_price_index: { day: number; index: number }[]
   suggestions: string[]
+  cascade_impacts?: Record<string, CascadeImpact>
+  assumptions?: string[]
+  company_context?: CompanyContext
 }
 
 export interface RiskReportResponse {

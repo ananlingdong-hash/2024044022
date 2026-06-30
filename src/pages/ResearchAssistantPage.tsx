@@ -45,7 +45,7 @@ export function ResearchAssistantPage() {
   useEffect(() => { return () => { if (typingTimerRef.current) window.clearTimeout(typingTimerRef.current) } }, [])
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }) }, [messages, assistantPhase])
 
-  const cleanNoise = (text: string) => text.replace(/\r/g, "").replace(/[|#*]/g, "").replace(/^\s*-\s*/gm, "").replace(/\s{2,}/g, " ").trim()
+  const cleanNoise = (text: string) => text.replace(/\r/g, "").replace(/^\s*-\s*/gm, "").replace(/\s{2,}/g, " ").trim()
   const normalizeReply = (text: string) => cleanNoise(text) || "暂无有效回复，请稍后再试。"
 
   const streamAssistantText = async (fullText: string) => {
@@ -74,7 +74,7 @@ export function ResearchAssistantPage() {
       const userQuestion = cleanNoise(question)
       if (!userQuestion) { setError("请输入有效问题。"); return }
       setMessages((prev) => [...prev, { id: `user-${Date.now()}`, role: "user", text: userQuestion }])
-      const payload = { task: userQuestion, context: "标的: NVDA，关注未来一季度", model }
+      const payload = { task: userQuestion, context: "公司: 腾讯控股，关注未来一季度监管、AI算力与全球化经营风险", model }
       const result = await switchModelAndChat(payload)
       setAssistantPhase("typing")
       await streamAssistantText(result.content)
@@ -168,7 +168,7 @@ export function ResearchAssistantPage() {
         </div>
 
         {diagnostic ? (
-          <p className="mt-2 text-[10px] text-[var(--text-muted)] mono-metric">调用状态: {diagnostic}</p>
+          <p className="mt-2 text-[10px] text-[var(--text-muted)]">响应时间: {diagnostic.split(" / ")[1] ?? diagnostic}</p>
         ) : null}
         {error ? <p className="mt-2 text-xs text-rose-300">{error}</p> : null}
       </Card>

@@ -8,16 +8,19 @@ import type { DataSourceMeta, KpiBullet, RiskBreakdown, RiskPoint, StrategyRadar
 
 function buildFallbackTimeSeries(): RiskPoint[] {
   const now = dayjs()
-  const points: RiskPoint[] = []
-  for (let i = 47; i >= 0; i--) {
+  return Array.from({ length: 48 }, (_, index) => {
+    const i = 47 - index
     const t = now.subtract(i * 30, "minute")
-    // Combine multiple sine waves + noise for realistic fluctuation
-    const trend = 50 + Math.sin(i / 8) * 15 + Math.sin(i / 3.5) * 8 + Math.sin(i / 2) * 4
-    const noise = (Math.random() - 0.5) * 10
-    const value = Math.round(Math.max(18, Math.min(92, trend + noise)))
-    points.push({ ts: t.format("HH:mm"), value })
-  }
-  return points
+    const trend = 58 + Math.sin(i / 7) * 12 + Math.sin(i / 3.2) * 7
+    const shock = i > 24 && i < 33 ? 8 : 0
+    const value = Math.round(Math.max(22, Math.min(92, trend + shock + (Math.random() - 0.5) * 8)))
+    return { ts: t.format("HH:mm"), value }
+  })
+}
+
+function stableNoise(seed: number) {
+  const value = Math.sin(seed * 12.9898) * 43758.5453
+  return value - Math.floor(value)
 }
 
 export function useRiskWorkbenchData() {
@@ -35,87 +38,102 @@ export function useRiskWorkbenchData() {
     retry: 2,
   })
 
-  const firstSymbol = watchlistQuery.data?.[0]?.symbol ?? "AAPL"
+  const firstSymbol = watchlistQuery.data?.[0]?.symbol ?? "Tencent"
 
   const tickQuery = useQuery({
     queryKey: ["ticks-v2", firstSymbol],
     queryFn: () => fetchLiveTicks(firstSymbol),
     staleTime: 20_000,
-    retry: 2,
+    retry: 1,
     enabled: !!firstSymbol,
   })
 
   const latestReport = historyQuery.data?.[0]
-  const sourceText = latestReport?.summary?.match(/数据源:\s*([^\@]+)\s*@\s*([^\n]+)/)
-  const source = sourceText?.[1]?.trim() ?? "synthetic_fallback"
-  const fetchedAt = sourceText?.[2]?.trim() ?? new Date().toISOString()
 
   const sourceMeta: DataSourceMeta = {
-    source,
-    fetchedAt,
-    isFallback: source.includes("fallback"),
+    source: "公开资料/媒体估算",
+    fetchedAt: new Date().toISOString(),
+    isFallback: true,
     latencyMs: tickQuery.data ? 280 : 0,
   }
+
+  const priceTrend: RiskPoint[] = useMemo(() => {
+    const rows = tickQuery.data
+    if (!rows?.length) {
+      const now = dayjs()
+      let indexValue = 300
+      return Array.from({ length: 48 }, (_, idx) => {
+        const t = now.subtract((47 - idx) * 30, "minute")
+        indexValue += (stableNoise(idx + 11) - 0.46) * 3.8
+        indexValue = Math.max(240, Math.min(360, indexValue))
+        return { ts: t.format("HH:mm"), value: Number(indexValue.toFixed(2)) }
+      })
+    }
+    return rows.slice(-48).map((row) => ({
+      ts: dayjs(row.time).format("HH:mm"),
+      value: row.price ?? (280 + stableNoise(row.time.length) * 40),
+    }))
+  }, [tickQuery.data])
 
   const riskTrend: RiskPoint[] = useMemo(() => {
     const rows = tickQuery.data
     if (!rows?.length) return buildFallbackTimeSeries()
     return rows.slice(-48).map((row, idx) => ({
       ts: dayjs(row.time).format("HH:mm"),
-      value: Math.max(15, Math.min(95, 50 + Math.sin(idx / 4) * 18 + Math.sin(idx / 2) * 7 + (Math.random() - 0.5) * 12)),
+      value: Math.max(20, Math.min(95, 60 + Math.sin(idx / 4) * 16 + (stableNoise(idx + 29) - 0.5) * 10)),
     }))
   }, [tickQuery.data])
 
   const breakdown: RiskBreakdown[] = useMemo(() => {
-    const score = latestReport?.marketSentiment ?? 55
-    const fx = Math.max(10, Math.min(60, 40 + Math.round((50 - score) * 0.4)))
-    const credit = Math.max(10, Math.min(60, 35 + Math.round((55 - score) * 0.3)))
-    const supply = 100 - fx - credit
+    const score = latestReport?.marketSentiment ?? 68
+    const regulation = Math.max(35, Math.min(55, 45 + Math.round((score - 60) * 0.3)))
+    const compute = Math.max(24, Math.min(38, 31 + Math.round((score - 65) * 0.15)))
+    const globalOps = Math.max(16, 100 - regulation - compute)
     return [
-      { name: "汇率风险", value: fx },
-      { name: "信用风险", value: credit },
-      { name: "供应链风险", value: Math.max(10, supply) },
+      { name: "监管合规风险", value: regulation },
+      { name: "AI算力风险", value: compute },
+      { name: "全球化经营风险", value: globalOps },
     ]
   }, [latestReport?.marketSentiment])
 
   const strategyRadar: StrategyRadarMetric[] = [
-    { name: "年化收益", conservative: 58, balanced: 77, aggressive: 88 },
-    { name: "回撤控制", conservative: 86, balanced: 72, aggressive: 54 },
-    { name: "执行复杂度", conservative: 40, balanced: 62, aggressive: 85 },
-    { name: "流动性适配", conservative: 81, balanced: 74, aggressive: 59 },
-    { name: "事件响应", conservative: 55, balanced: 76, aggressive: 90 },
+    { name: "合规确定性", conservative: 92, balanced: 78, aggressive: 55 },
+    { name: "业务连续性", conservative: 70, balanced: 84, aggressive: 90 },
+    { name: "算力保障", conservative: 88, balanced: 76, aggressive: 58 },
+    { name: "成本效率", conservative: 42, balanced: 75, aggressive: 90 },
+    { name: "舆情响应", conservative: 80, balanced: 86, aggressive: 65 },
   ]
 
   const supplyNodes: SupplyNode[] = [
-    { id: "核心企业", category: "核心企业", risk: 42 },
-    { id: "芯片供应商", category: "一级供应商", risk: 61 },
-    { id: "物流节点", category: "一级供应商", risk: 53 },
-    { id: "材料厂A", category: "二级供应商", risk: 67 },
-    { id: "材料厂B", category: "二级供应商", risk: 39 },
+    { id: "腾讯控股", category: "核心企业", risk: 62 },
+    { id: "CMC监管", category: "一级风险节点", risk: 82 },
+    { id: "AI算力池", category: "一级风险节点", risk: 70 },
+    { id: "数据中心", category: "二级保障节点", risk: 46 },
+    { id: "内容审核", category: "二级保障节点", risk: 54 },
   ]
   const supplyLinks: SupplyLink[] = [
-    { source: "核心企业", target: "芯片供应商", weight: 8 },
-    { source: "核心企业", target: "物流节点", weight: 6 },
-    { source: "芯片供应商", target: "材料厂A", weight: 9 },
-    { source: "芯片供应商", target: "材料厂B", weight: 5 },
-    { source: "物流节点", target: "材料厂B", weight: 3 },
+    { source: "腾讯控股", target: "CMC监管", weight: 9 },
+    { source: "腾讯控股", target: "AI算力池", weight: 8 },
+    { source: "AI算力池", target: "数据中心", weight: 7 },
+    { source: "CMC监管", target: "内容审核", weight: 8 },
+    { source: "内容审核", target: "数据中心", weight: 4 },
   ]
 
   const kpiBullets: KpiBullet[] = [
-    { name: "预警命中率", actual: 76, target: 85, threshold: 65 },
-    { name: "风控执行率", actual: 69, target: 80, threshold: 60 },
-    { name: "回撤控制达成", actual: 72, target: 78, threshold: 58 },
+    { name: "监管响应SLA", actual: 82, target: 90, threshold: 70 },
+    { name: "AI算力备份覆盖", actual: 64, target: 75, threshold: 50 },
+    { name: "内容安全拦截率", actual: 96, target: 98, threshold: 92 },
   ]
 
   const suggestionCards: SuggestionCard[] =
-    (latestReport?.marketSentiment ?? 55) < 58
+    (latestReport?.marketSentiment ?? 68) >= 60
       ? [{
-            id: `risk-${latestReport?.id ?? "now"}`,
-            title: "风险阈值触发：建议降低高波动敞口",
-            score: latestReport?.marketSentiment ?? 55,
-            summary: "当前综合风险偏高，建议启动平衡到保守切换并复核止损带。",
-            actions: ["执行保守策略", "生成对冲指令", "30分钟后复核"],
-          }]
+          id: `tencent-risk-${latestReport?.id ?? "now"}`,
+          title: "监管窗口触发：建议启动平衡响应",
+          score: latestReport?.marketSentiment ?? 68,
+          summary: "当前风险主要来自 CMC黑名单监管、游戏版号 与 AI 算力供应，建议优先复核高确定性合规动作。",
+          actions: ["生成合规台账", "复核算力替代池", "48小时后复盘"],
+        }]
       : []
 
   return {
@@ -123,6 +141,7 @@ export function useRiskWorkbenchData() {
     firstSymbol,
     latestReport,
     riskTrend,
+    priceTrend,
     breakdown,
     strategyRadar,
     supplyNodes,
@@ -136,23 +155,22 @@ export function useRiskWorkbenchData() {
 
 export function subscribeRealtimeTick(onTick: (payload: { symbol: string; price: number; ts: number }) => void) {
   let active = true
-  const symbols = ["AAPL", "NVDA", "GOOGL", "MSFT"]
+  const symbols = ["Tencent", "WeChat", "Douyin", "AI Compute"]
   let idx = 0
-  let basePrice = 185 + Math.random() * 20
+  let basePrice = 300 + Math.random() * 20
 
   const emit = () => {
     if (!active) return
     const symbol = symbols[idx % symbols.length]
-    idx++
-    basePrice += (Math.random() - 0.45) * 1.5
-    basePrice = Math.max(120, Math.min(250, basePrice))
+    idx += 1
+    basePrice += (Math.random() - 0.45) * 2.2
+    basePrice = Math.max(240, Math.min(360, basePrice))
     onTick({ symbol, price: Number(basePrice.toFixed(2)), ts: Date.now() })
   }
 
   emit()
   const interval = setInterval(emit, 2000)
 
-  // Also try WebSocket
   const ws = createMarketSocket((payload) => {
     if (active) onTick(payload)
   })

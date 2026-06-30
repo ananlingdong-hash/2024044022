@@ -1,5 +1,8 @@
 import ReactECharts from "echarts-for-react"
 import type { KpiBullet } from "@/types/v2"
+import { CHART_COLORS } from "@/lib/chart-theme"
+
+const { chrome, info, infoLight } = CHART_COLORS
 
 export function KpiBulletChart({ rows }: { rows: KpiBullet[] }) {
   return (
@@ -11,15 +14,15 @@ export function KpiBulletChart({ rows }: { rows: KpiBullet[] }) {
         tooltip: {
           trigger: "axis",
           axisPointer: { type: "shadow" },
-          borderColor: "rgba(255,255,255,0.10)",
-          backgroundColor: "rgba(20,20,35,0.96)",
-          textStyle: { fontSize: 11, color: "#e4e4e7" },
+          borderColor: chrome.tooltipBorder,
+          backgroundColor: chrome.tooltipBg,
+          textStyle: { fontSize: 11, color: chrome.tooltipText },
         },
         xAxis: {
           type: "value",
           max: 100,
-          axisLabel: { color: "#71717a", fontSize: 10, formatter: "{value}%" },
-          splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)", type: "dashed" } },
+          axisLabel: { color: chrome.textMuted, fontSize: 10, formatter: "{value}%" },
+          splitLine: { lineStyle: { color: chrome.gridLight, type: "dashed" } },
         },
         yAxis: {
           type: "category",
@@ -51,14 +54,14 @@ export function KpiBulletChart({ rows }: { rows: KpiBullet[] }) {
             type: "bar",
             barWidth: 6,
             data: rows.map((x) => x.actual),
-            itemStyle: { color: "#38bdf8", borderRadius: [0, 9, 9, 0] },
+            itemStyle: { color: info, borderRadius: [0, 9, 9, 0] },
             z: 3,
-            emphasis: { itemStyle: { color: "#7dd3fc" } },
+            emphasis: { itemStyle: { color: infoLight } },
             name: "实际",
             label: {
               show: true,
               position: "right",
-              color: "#e4e4e7",
+              color: chrome.tooltipText,
               fontSize: 10,
               fontWeight: "bold",
               formatter: (params: { value: number }) => `${params.value}%`,

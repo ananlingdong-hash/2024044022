@@ -16,26 +16,51 @@ export function LoginPage() {
   const [message, setMessage] = useState("")
 
   const loggedIn = useMemo(() => Boolean(getAuthToken()), [])
-  if (loggedIn) return <Navigate to="/quant" replace />
+  if (loggedIn) return <Navigate to="/demo" replace />
 
   const submit = async () => {
+    if (!email.trim() || !password.trim()) {
+      setMessage("请输入邮箱和密码。")
+      return
+    }
+    if (mode === "register" && !nickname.trim()) {
+      setMessage("请输入昵称。")
+      return
+    }
     try {
       setLoading(true)
       setMessage("")
       const payload = mode === "login" ? await login({ email, password }) : await register({ email, password, nickname })
       saveAuthSession(payload.token, { userId: payload.userId, email: payload.email, nickname: payload.nickname })
-      window.location.href = "/quant"
-    } catch {
-      setMessage("认证失败，请检查输入信息。")
+      window.location.href = "/demo"
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { detail?: Array<{msg:string}> | string } }; message?: string; code?: string }
+      if (axiosErr?.response?.status === 400) {
+        setMessage("邮箱已注册，请直接登录或更换邮箱。")
+      } else if (axiosErr?.response?.status === 401) {
+        setMessage("邮箱或密码错误，请重试。")
+      } else if (axiosErr?.response?.status === 409) {
+        setMessage("该邮箱已被注册。")
+      } else if (axiosErr?.response?.status === 422) {
+        const detail = axiosErr.response?.data?.detail
+        const msg = Array.isArray(detail) ? detail[0]?.msg : String(detail ?? "")
+        setMessage(msg || "输入格式有误，请检查后重试。")
+      } else if (axiosErr?.response?.status && axiosErr.response.status >= 500) {
+        setMessage("服务器繁忙，请稍后重试。")
+      } else if (axiosErr?.code === "ERR_NETWORK" || axiosErr?.message?.includes("Network") || axiosErr?.message?.includes("timeout")) {
+        setMessage("无法连接服务器 (localhost:8000)，请确认后端已启动。")
+      } else {
+        setMessage(`请求失败: ${axiosErr?.message || "未知错误"}`)
+      }
     } finally {
       setLoading(false)
     }
   }
 
   const features = [
-    { icon: BarChart3, label: "AI 情绪分析", desc: "实时舆情雷达与市场情绪指数" },
-    { icon: TrendingUp, label: "量化回测", desc: "多因子策略回测与优化引擎" },
-    { icon: Sparkles, label: "智能助手", desc: "MiniMax 驱动的投研对话" },
+    { icon: BarChart3, label: "风险态势总览", desc: "一屏掌握评分、预警、VaR 与风险构成" },
+    { icon: TrendingUp, label: "策略优化闭环", desc: "保守、平衡、激进三套方案自动对比" },
+    { icon: Sparkles, label: "风险哨兵 Agent", desc: "结合页面上下文给出可执行风控建议" },
   ]
 
   return (
@@ -45,14 +70,14 @@ export function LoginPage() {
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-indigo-300/20 bg-indigo-500/10 px-3 py-1">
             <Zap size={12} className="text-indigo-300" />
-            <span className="text-[11px] tracking-[0.15em] uppercase text-indigo-200/80">AstraQuant Terminal</span>
+            <span className="text-[11px] tracking-[0.15em] uppercase text-indigo-200/80">AstraQuant Command Center</span>
           </div>
           <h1 className="text-4xl lg:text-5xl font-semibold tracking-[-0.03em] leading-tight">
             AI 驱动的<br />
-            <span className="text-[var(--brand)]">量化交易</span>工作台
+            <span className="text-[var(--brand)]">风险决策</span>指挥舱
           </h1>
           <p className="max-w-md text-[15px] text-[var(--text-muted)] leading-relaxed">
-            Bloomberg 级别的数据终端体验，集成舆情雷达、量化策略工坊、AI 投研助手与实时市场透视。
+            面向课堂展示的端到端 AI Agent 系统，覆盖风险发现、智能评估、策略优化与 PDCA 执行闭环。
           </p>
         </div>
         <div className="space-y-3">

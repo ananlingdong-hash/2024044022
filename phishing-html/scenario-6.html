@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情景六：课程/教务系统通知 — 反钓鱼实训</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif; color: #333; line-height: 1.6; background: #f5f5f0; min-height: 100vh; }
+.phishing-wrapper-hint { background: #2c3e50; color: #ffd43b; padding: 6px 24px; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 100; text-align: center; border-bottom: 2px solid #ffd43b; }
+.phishing-wrapper-hint a { color: inherit; text-decoration: none; }
+
+/* MODAL */
+.phish-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+.phish-modal { background: #fff; border-radius: 4px; max-width: 680px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.phish-modal-header { background: #c0392b; color: #fff; padding: 28px 28px 20px; text-align: center; border-radius: 4px 4px 0 0; }
+.phish-modal-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.phish-modal-subtitle { font-size: 13px; opacity: 0.92; line-height: 1.7; }
+.phish-modal-badge { display: inline-block; margin-top: 10px; padding: 3px 14px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 12px; font-weight: 500; }
+.phish-modal-section { padding: 20px 28px; }
+.phish-modal-section h3 { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 14px; }
+.phish-redflags { display: flex; flex-direction: column; gap: 10px; }
+.phish-redflag-item { display: flex; gap: 12px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 3px; padding: 14px 16px; }
+.phish-redflag-icon { width: 28px; height: 28px; border-radius: 3px; background: #c0392b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.phish-redflag-item strong { display: block; font-size: 14px; color: #c0392b; margin-bottom: 4px; }
+.phish-redflag-item p { font-size: 13px; color: #555; margin: 0; line-height: 1.6; }
+.phish-tips-carousel { background: #f0f4ff; border-radius: 3px; padding: 20px; border: 1px solid #d6e0f5; }
+.phish-tip-card { min-height: 80px; display: flex; flex-direction: column; }
+.phish-tip-number { font-size: 11px; color: #888; margin-bottom: 8px; }
+.phish-tip-card p { font-size: 15px; color: #2c3e50; line-height: 1.8; flex: 1; }
+.phish-tips-nav { display: flex; gap: 10px; margin-top: 12px; justify-content: center; }
+.phish-tip-btn { padding: 6px 16px; border: 1px solid #ccc; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; color: #333; transition: all 0.15s; }
+.phish-tip-btn:hover:not(:disabled) { background: #7c6ff7; color: #fff; border-color: #7c6ff7; }
+.phish-tip-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.phish-prevention-box ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.phish-prevention-box li { font-size: 13px; color: #444; line-height: 1.7; padding: 8px 12px; background: #f0faf0; border-radius: 6px; border-left: 3px solid #27ae60; }
+.phish-modal-close { display: block; width: calc(100% - 56px); margin: 0 28px 28px; padding: 12px; background: #c0392b; color: #fff; border: none; border-radius: 3px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.phish-modal-close:hover { background: #6558e0; }
+
+/* SCENARIO 6 */
+.s6-doc { background: #fff; border: 1px solid #e0d6c8; box-shadow: 0 2px 16px rgba(0,0,0,0.07); max-width: 780px; margin: 0 auto; }
+.s6-red-header { background: #fff; border-bottom: 2px solid #c00; padding: 28px 40px 16px; text-align: center; }
+.s6-red-line1 { font-size: 22px; font-weight: 700; color: #c00; letter-spacing: 4px; }
+.s6-red-line2 { font-size: 13px; color: #c00; margin-top: 6px; font-family: "SimSun", "KaiTi", serif; }
+.s6-doc-title { padding: 24px 40px 8px; text-align: center; }
+.s6-doc-title h1 { font-size: 20px; font-weight: 700; color: #000; line-height: 1.8; }
+.s6-doc-body { padding: 20px 40px; font-size: 14px; color: #222; line-height: 2; }
+.s6-doc-body p { margin-bottom: 12px; text-indent: 2em; }
+.s6-doc-body h3 { font-size: 16px; font-weight: 700; margin: 16px 0 8px; text-indent: 0; }
+.s6-doc-body ul, .s6-doc-body ol { margin-left: 4em; margin-bottom: 12px; }
+.s6-steps li { margin-bottom: 6px; }
+.s6-deadline-box { border: 1px solid #c00; background: #fff8f8; padding: 16px 20px; text-align: center; margin: 16px 0 20px; text-indent: 0; }
+.s6-deadline-text { text-indent: 0; font-size: 14px; color: #c00; margin: 0; }
+.s6-warning { border-left: 4px solid #c00; background: #fff5f5; padding: 12px 16px; margin: 16px 0; text-indent: 0; font-size: 13px; }
+.s6-form-wrapper { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 2px; padding: 24px; margin: 20px 0; }
+.s6-form-title { text-align: center; color: #c0392b; font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.s6-form { display: flex; flex-direction: column; gap: 12px; }
+.s6-field label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 4px; }
+.s6-field input { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+.s6-field input:focus { outline: none; border-color: #8b0000; }
+.s6-checkbox-group { margin-top: 8px; }
+.s6-checkbox { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: #555; }
+.s6-submit { padding: 12px; background: #c00; color: #fff; border: none; border-radius: 2px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: background 0.2s; }
+.s6-submit:hover { background: #a00000; }
+.s6-stamp-area { text-align: right; padding: 0 40px 28px; }
+.s6-stamp-text { display: inline-block; border: 2px solid #c00; border-radius: 50%; width: 100px; height: 100px; text-align: center; line-height: 1.3; padding-top: 28px; font-size: 14px; font-weight: 700; color: #c00; transform: rotate(-15deg); opacity: 0.8; }
+.s6-stamp-date { text-align: right; font-size: 13px; margin-top: 4px; }
+.s6-url-hint { background: #fff8e1; padding: 10px 16px; font-size: 12px; text-align: center; border-top: 1px solid #eee; }
+.s6-url-red { color: #c0392b; font-family: monospace; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="phishing-wrapper-hint">🎣 反钓鱼实训 / 教务通知</div>
+
+<div style="padding:32px 20px;">
+  <div class="s6-doc">
+    <div class="s6-red-header">
+      <div class="s6-red-line1">深圳大学教务处文件</div>
+      <div class="s6-red-line2">深大教〔2026〕188号</div>
+    </div>
+
+    <div class="s6-doc-title">
+      <h1>关于开展2025-2026学年第二学期<br>学生学籍信息专项核查工作的紧急通知</h1>
+    </div>
+
+    <div class="s6-doc-body">
+      <p><strong>各学院、全体本科生：</strong></p>
+      <p>根据教育部《高等学校学生学籍学历电子注册办法》（教学〔2014〕11号）及<strong>《深圳大学学生学籍管理规定》（深大教〔2026〕188号）</strong>的要求，为进一步加强学生学籍信息管理，保障学生合法权益，现决定开展2025-2026学年第二学期学生学籍信息专项核查工作。</p>
+
+      <div class="s6-deadline-box">
+        <p class="s6-deadline-text">本次核查截止时间为<strong>2026年6月14日 24:00</strong>。逾期未完成者，<strong>后果自负</strong>，将影响正常毕业审核流程。</p>
+      </div>
+
+      <h3>一、核查对象</h3>
+      <p>全校在读本科生（含交换生、休学复学学生）。</p>
+
+      <h3>二、核查内容</h3>
+      <ul>
+        <li>个人基本信息（姓名、身份证号、民族、出生日期）</li>
+        <li>学籍状态信息（学院、专业、班级、学制）</li>
+        <li>联系方式（手机号、紧急联系人）</li>
+      </ul>
+
+      <h3>三、核查方式</h3>
+      <p>请登入下方系统进行在线核实。需要完成以下步骤：</p>
+      <ol class="s6-steps">
+        <li>输入学号及统一认证密码登入系统</li>
+        <li>确认及修改个人信息</li>
+        <li>填写紧急联系人及监护人信息</li>
+        <li>电子签名确认（辅导员签字确认）</li>
+      </ol>
+
+      <div class="s6-warning">
+        <strong>特别提醒：</strong>本次核查与你的毕业资格审查直接关联，请务必在规定时间内完成。各学院辅导员将逐一核实完成情况，未完成者按学籍管理规定处理。
+      </div>
+
+      <div class="s6-form-wrapper">
+        <h3 class="s6-form-title">学籍信息核查系统</h3>
+        <form class="s6-form" id="phishForm">
+          <div class="s6-field"><label>学号</label><input type="text" placeholder="请输入学号" required id="studentId"></div>
+          <div class="s6-field"><label>统一认证密码</label><input type="password" placeholder="请输入密码" required id="password"></div>
+          <div class="s6-field"><label>手机号码</label><input type="tel" placeholder="用于接收核查结果" required id="phone"></div>
+          <div class="s6-field"><label>监护人姓名及联系方式</label><input type="text" placeholder="姓名 / 电话" required id="guardian"></div>
+          <div class="s6-checkbox-group">
+            <label class="s6-checkbox"><input type="checkbox" required><span>本人承诺以上信息真实有效，如有虚假自愿承担一切后果</span></label>
+          </div>
+          <button type="submit" class="s6-submit">提交核查，完成确认</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="s6-stamp-area">
+      <div class="s6-stamp-text">深圳大学<br>教务处</div>
+      <div class="s6-stamp-date">2026年6月13日</div>
+    </div>
+
+    <div class="s6-url-hint">
+      当前页面：<span class="s6-url-red">http://jw-szu.edu.cn/notice/verify-2026</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="phish-modal-overlay hidden" id="modalOverlay">
+  <div class="phish-modal">
+    <div class="phish-modal-header">
+      <h2>你差点上当了</h2>
+      <p class="phish-modal-subtitle">你刚刚输入的隐私信息如果真的提交，可能已被不法分子获取。<br><strong>这只是一个反钓鱼安全意识教育页面——你的数据没有被保存。</strong></p>
+      <span class="phish-modal-badge">情景六：教务系统通知（利用权威与服从）</span>
+    </div>
+    <div class="phish-modal-section">
+      <h3>你应该发现的疑点（Red Flags）</h3>
+      <div class="phish-redflags">
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">1</span><div><strong>伪造的公文编号</strong><p>通知中引用的「深大教〔2026〕188号文件」是编造的——你可以去深圳大学官网搜索该文号，会发现根本不存在。钓鱼者利用人们对「红头文件」的敬畏心理，编一个看起来正式的文件号。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">2</span><div><strong>制造恐惧和服从压力</strong><p>「逾期后果自负」「将影响正常毕业审核」——这些威胁性措辞是典型的社交工程手法，目的就是让你害怕而不敢质疑。正规学校通知会留充足的办理时间，不会使用这种恐吓语气。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">3</span><div><strong>虚假子域名混淆</strong><p>域名「jw-szu.edu.cn」看起来像「深圳大学教务」的缩写，但它是一个独立注册的 .edu.cn 域名，并非 szu.edu.cn 的子域。真正的深大域名结构是 jw.szu.edu.cn（注意中间是点号而非连字符）。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">4</span><div><strong>繁体转换残留</strong><p>通知正文中出现「登入系統」等港台用语（正常应为「登录系统」），这说明页面模板来自港澳台诈骗团伙，只是简单做了简体字转换。正规大陆高校公文不会出现这种用词。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">5</span><div><strong>PS 制作的电子印章</strong><p>页面底部的「深圳大学教务处」红色圆形印章与文字排版不对齐，边缘有白色锯齿——这是用图片编辑软件直接贴上去的。真正的电子公文使用 CA 数字证书签名，不是图片印章。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">6</span><div><strong>编造的行政流程</strong><p>通知要求的「辅导员签字确认」流程在真实的学籍核查中根本不存在。钓鱼者添加这一步骤是为了让你觉得流程很「正式」，从而放松警惕。</p></div></div>
+      </div>
+    </div>
+    <div class="phish-modal-section">
+      <h3>防钓鱼知识点</h3>
+      <div class="phish-tips-carousel">
+        <div class="phish-tip-card">
+          <span class="phish-tip-number" id="tipNumber">1 / 6</span>
+          <p id="tipContent">收到带「红头文件」编号的通知，先去学校官网搜索该文件号是否存在——不存在就是钓鱼。</p>
+        </div>
+        <div class="phish-tips-nav">
+          <button class="phish-tip-btn" id="tipPrev" disabled>上一条</button>
+          <button class="phish-tip-btn" id="tipNext">下一条</button>
+        </div>
+      </div>
+    </div>
+    <div class="phish-modal-section phish-prevention-box">
+      <h3>通用防钓鱼守则</h3>
+      <ul>
+        <li><strong>核对域名：</strong>在输入任何敏感信息前，先看浏览器地址栏的域名是否为官方域名</li>
+        <li><strong>不点来路不明的链接：</strong>邮件、短信、社交软件里的链接要格外警惕</li>
+        <li><strong>官方渠道验证：</strong>收到「紧急通知」先通过学校官网、官方公众号核实</li>
+        <li><strong>不轻易输入密码：</strong>被要求输入账号密码才能查看内容时，停下来想一想</li>
+        <li><strong>注意 HTTPS：</strong>正规网站地址栏有锁标志（但钓鱼网站也可能有，不能只看这个）</li>
+      </ul>
+    </div>
+    <button class="phish-modal-close" id="modalClose">我已了解，关闭</button>
+  </div>
+</div>
+
+<script>
+var tips = [
+  "收到带「红头文件」编号的通知，先去学校官网搜索该文件号是否存在——不存在就是钓鱼。",
+  "任何以「后果自负」「影响毕业」等威胁语气催促你操作的邮件/短信，大概率是诈骗。正规通知会告知事由和办理方式，不会恐吓。",
+  "留意域名结构：深圳大学子域名为「xxx.szu.edu.cn」（点号连接），而「xxx-szu.edu.cn」或「szu-xxx.cn」（连字符）是独立注册的域名。",
+  "国内正规高校的公文使用 CA 数字证书电子签名，不是图片印章。如果你能右键保存「公章」为 PNG 图片，那一定是假的。",
+  "养成良好的验证习惯：收到通知后关闭邮件/短信，自己打开浏览器输入官网地址登录，而不是点击通知里的链接。",
+  "文字质量检查：正规公文不会出现「登入」「點擊」等港台用语或明显错别字，这些都是钓鱼页面的常见破绽。"
+];
+var currentTip = 0;
+var overlay = document.getElementById('modalOverlay');
+var tipNumberEl = document.getElementById('tipNumber');
+var tipContentEl = document.getElementById('tipContent');
+var tipPrevBtn = document.getElementById('tipPrev');
+var tipNextBtn = document.getElementById('tipNext');
+
+function updateTip() {
+  tipNumberEl.textContent = (currentTip + 1) + ' / ' + tips.length;
+  tipContentEl.textContent = tips[currentTip];
+  tipPrevBtn.disabled = currentTip === 0;
+  tipNextBtn.disabled = currentTip === tips.length - 1;
+}
+tipPrevBtn.addEventListener('click', function() { if (currentTip > 0) { currentTip--; updateTip(); } });
+tipNextBtn.addEventListener('click', function() { if (currentTip < tips.length - 1) { currentTip++; updateTip(); } });
+
+document.getElementById('phishForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  overlay.classList.remove('hidden');
+  currentTip = 0;
+  updateTip();
+});
+function closeModal() {
+  overlay.classList.add('hidden');
+  document.getElementById('phishForm').reset();
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+</script>
+</body>
+</html>

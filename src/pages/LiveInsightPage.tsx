@@ -13,8 +13,10 @@ export function LiveInsightPage() {
   const [historyTicks, setHistoryTicks] = useState<Array<{ time: string; price: number }>>([])
   const [loading, setLoading] = useState(true)
 
+  const [watchlistError, setWatchlistError] = useState(false)
+
   useEffect(() => {
-    fetchWatchlist().then(setWatchlist).catch(() => undefined).finally(() => setLoading(false))
+    fetchWatchlist().then(setWatchlist).catch(() => { setWatchlistError(true); setLoading(false) }).finally(() => setLoading(false))
   }, [])
 
   useEffect(() => {
@@ -42,9 +44,9 @@ export function LiveInsightPage() {
   ]
 
   return (
-    <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+    <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
       {/* Main chart */}
-      <Card className="lg:col-span-8" padding="lg">
+      <Card variant="cyber" className="lg:col-span-2 scan-line" padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 ring-1 ring-indigo-300/15">
             <TrendingUp size={13} className="text-indigo-300/80" />
@@ -58,7 +60,7 @@ export function LiveInsightPage() {
           <Badge variant="brand" size="sm">趋势跟随</Badge>
           <Badge variant="success" size="sm">胜率 58%</Badge>
           <Badge variant="info" size="sm">盈亏比 1.92</Badge>
-          {latestTick ? <Badge variant="warning" size="sm">{latestTick.symbol} {latestTick.price}</Badge> : null}
+          {latestTick ? <Badge variant="success" size="sm" className="live-badge">LIVE {latestTick.symbol} {latestTick.price}</Badge> : <Badge variant="info" size="sm" className="live-badge">LIVE</Badge>}
         </div>
         <ReactECharts
           option={{
@@ -78,7 +80,7 @@ export function LiveInsightPage() {
       </Card>
 
       {/* Strategy comparison */}
-      <Card className="lg:col-span-4" variant="elevated" padding="lg">
+      <Card className="lg:col-span-1" variant="cyber" padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 ring-1 ring-amber-300/15">
             <Zap size={13} className="text-amber-300/80" />
@@ -114,7 +116,7 @@ export function LiveInsightPage() {
       </Card>
 
       {/* Bottom bar */}
-      <Card className="lg:col-span-12" variant="flat" padding="default">
+      <Card className="lg:col-span-3" variant="flat" padding="default">
         <div className="flex items-center gap-2 mb-1">
           <Activity size={13} className="text-[var(--text-muted)]" />
           <h3 className="text-sm font-semibold tracking-[-0.01em]">策略对比看板</h3>
@@ -123,7 +125,7 @@ export function LiveInsightPage() {
         <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
           <span>历史分时点数: {historyTicks.length}</span>
           <span className="text-white/[0.10]">|</span>
-          <span>自选池: {watchlist.map((item) => `${item.symbol}(${item.name})`).join(" | ") || "加载中..."}</span>
+          <span>自选池: {watchlistError ? "数据加载失败" : watchlist.length > 0 ? watchlist.map((item) => `${item.symbol}(${item.name})`).join(" | ") : "暂无数据"}</span>
         </div>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-[var(--text-muted)]">
           <p>策略分析1：当前市场风格偏"成长+动量"，短频策略 alpha 更高，但交易成本敏感。</p>

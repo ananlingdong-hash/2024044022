@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react"
 import { CandlestickSeries, createChart, type ISeriesApi, type UTCTimestamp } from "lightweight-charts"
+import { CHART_COLORS } from "@/lib/chart-theme"
 
 type Candle = { time: string; price: number }
 
@@ -19,21 +20,21 @@ export function RealtimeCandleChart({
     if (!containerRef.current) return
     const chart = createChart(containerRef.current, {
       width: containerRef.current.clientWidth,
-      height: 280,
+      height: 320,
       layout: {
         background: { color: "transparent" },
-        textColor: "#a1a1aa",
+        textColor: CHART_COLORS.chrome.text,
       },
       grid: {
-        vertLines: { color: "rgba(255,255,255,0.04)" },
-        horzLines: { color: "rgba(255,255,255,0.04)" },
+        vertLines: { color: CHART_COLORS.chrome.gridLight },
+        horzLines: { color: CHART_COLORS.chrome.gridLight },
       },
       rightPriceScale: {
-        borderColor: "rgba(255,255,255,0.08)",
+        borderColor: CHART_COLORS.chrome.border,
         scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       timeScale: {
-        borderColor: "rgba(255,255,255,0.08)",
+        borderColor: CHART_COLORS.chrome.border,
         timeVisible: true,
         secondsVisible: false,
       },
@@ -46,17 +47,17 @@ export function RealtimeCandleChart({
     chartRef.current = chart
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: "#22c55e",
-      downColor: "#ef4444",
+      upColor: CHART_COLORS.up,
+      downColor: CHART_COLORS.down,
       borderVisible: false,
-      wickUpColor: "#34d399",
-      wickDownColor: "#f87171",
+      wickUpColor: CHART_COLORS.upWick,
+      wickDownColor: CHART_COLORS.downWick,
     })
     seriesRef.current = series
 
     const resize = () => {
       if (!containerRef.current) return
-      chart.resize(containerRef.current.clientWidth, 280)
+      chart.resize(containerRef.current.clientWidth, 320)
     }
     window.addEventListener("resize", resize)
 

@@ -19,8 +19,8 @@ const statusBadge = (s: string) => {
 
 export function SystemSettingsPage() {
   return (
-    <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-      <Card className="xl:col-span-7" padding="lg">
+    <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+      <Card className="lg:col-span-2" padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 ring-1 ring-indigo-300/15">
             <Shield size={13} className="text-indigo-300/80" />
@@ -44,7 +44,7 @@ export function SystemSettingsPage() {
         </div>
       </Card>
 
-      <Card className="xl:col-span-5" variant="elevated" padding="lg">
+      <Card className="lg:col-span-1" variant="elevated" padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-300/15">
             <Activity size={13} className="text-emerald-300/80" />

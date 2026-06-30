@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情景五：校园与教务系统通知 — 反钓鱼实训</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif; color: #333; line-height: 1.6; background: #eef1f5; min-height: 100vh; }
+.phishing-wrapper-hint { background: #2c3e50; color: #ffd43b; padding: 6px 24px; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 100; text-align: center; border-bottom: 2px solid #ffd43b; }
+.phishing-wrapper-hint a { color: inherit; text-decoration: none; }
+
+/* MODAL */
+.phish-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+.phish-modal { background: #fff; border-radius: 4px; max-width: 680px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.phish-modal-header { background: #c0392b; color: #fff; padding: 28px 28px 20px; text-align: center; border-radius: 4px 4px 0 0; }
+.phish-modal-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.phish-modal-subtitle { font-size: 13px; opacity: 0.92; line-height: 1.7; }
+.phish-modal-badge { display: inline-block; margin-top: 10px; padding: 3px 14px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 12px; font-weight: 500; }
+.phish-modal-section { padding: 20px 28px; }
+.phish-modal-section h3 { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 14px; }
+.phish-redflags { display: flex; flex-direction: column; gap: 10px; }
+.phish-redflag-item { display: flex; gap: 12px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 3px; padding: 14px 16px; }
+.phish-redflag-icon { width: 28px; height: 28px; border-radius: 3px; background: #c0392b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.phish-redflag-item strong { display: block; font-size: 14px; color: #c0392b; margin-bottom: 4px; }
+.phish-redflag-item p { font-size: 13px; color: #555; margin: 0; line-height: 1.6; }
+.phish-tips-carousel { background: #f0f4ff; border-radius: 3px; padding: 20px; border: 1px solid #d6e0f5; }
+.phish-tip-card { min-height: 80px; display: flex; flex-direction: column; }
+.phish-tip-number { font-size: 11px; color: #888; margin-bottom: 8px; }
+.phish-tip-card p { font-size: 15px; color: #2c3e50; line-height: 1.8; flex: 1; }
+.phish-tips-nav { display: flex; gap: 10px; margin-top: 12px; justify-content: center; }
+.phish-tip-btn { padding: 6px 16px; border: 1px solid #ccc; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; color: #333; transition: all 0.15s; }
+.phish-tip-btn:hover:not(:disabled) { background: #7c6ff7; color: #fff; border-color: #7c6ff7; }
+.phish-tip-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.phish-prevention-box ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.phish-prevention-box li { font-size: 13px; color: #444; line-height: 1.7; padding: 8px 12px; background: #f0faf0; border-radius: 6px; border-left: 3px solid #27ae60; }
+.phish-modal-close { display: block; width: calc(100% - 56px); margin: 0 28px 28px; padding: 12px; background: #c0392b; color: #fff; border: none; border-radius: 3px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.phish-modal-close:hover { background: #6558e0; }
+
+/* SCENARIO 5 */
+.s5-email-banner { background: #fff; border-radius: 3px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid #ddd; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+.s5-email-meta { font-size: 12px; color: #888; margin-bottom: 8px; display: flex; flex-wrap: wrap; align-items: center; }
+.s5-email-label { font-weight: 600; color: #666; }
+.s5-email-from { color: #c0392b; font-weight: 500; }
+.s5-email-subject { font-size: 15px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+.s5-email-body { font-size: 14px; color: #444; line-height: 1.8; }
+.s5-email-body p { margin-bottom: 8px; }
+.s5-fake-link { color: #8b0000; text-decoration: underline; font-weight: 500; cursor: pointer; }
+.s5-page { background: #fff; border-radius: 3px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; }
+.s5-page-header { background: linear-gradient(180deg, #8b0000 0%, #6b0000 100%); color: #fff; padding: 24px 28px; display: flex; align-items: center; gap: 16px; }
+.s5-fake-logo { width: 64px; height: 64px; border-radius: 3px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.25); }
+.s5-page-title h2 { font-size: 22px; font-weight: 600; }
+.s5-page-title p { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+.s5-alert { display: flex; gap: 12px; margin: 20px 28px; padding: 16px 20px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 3px; }
+.s5-alert-icon { width: 28px; height: 28px; border-radius: 2px; background: #e67e22; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; }
+.s5-alert strong { display: block; color: #c0392b; font-size: 14px; margin-bottom: 4px; }
+.s5-alert p { font-size: 13px; color: #666; margin: 0; }
+.s5-info-table { margin: 0 28px 20px; }
+.s5-info-table h3 { font-size: 15px; margin-bottom: 10px; color: #1a1a2e; }
+.s5-info-table table { width: 100%; border-collapse: collapse; }
+.s5-info-table td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+.s5-td-label { color: #888; font-weight: 500; width: 120px; }
+.s5-form-section { margin: 0 28px; padding: 24px 0; border-top: 1px solid #eee; }
+.s5-form-section h3 { font-size: 18px; color: #1a1a2e; margin-bottom: 6px; }
+.s5-form-hint { font-size: 13px; color: #888; margin-bottom: 16px; }
+.s5-form { display: flex; flex-direction: column; gap: 14px; }
+.s5-field label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 4px; }
+.s5-field input { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 2px; font-size: 14px; }
+.s5-field input:focus { outline: none; border-color: #8b0000; box-shadow: 0 0 0 2px rgba(139,0,0,0.08); }
+.s5-field-note { font-size: 11px; color: #c0392b; font-weight: normal; }
+.s5-submit { padding: 12px 24px; background: #8b0000; color: #fff; border: none; border-radius: 2px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.s5-submit:hover { background: #a00000; }
+.s5-footer { background: #f8f8f8; border-top: 1px solid #eee; padding: 16px 28px; text-align: center; font-size: 12px; color: #aaa; }
+.s5-footer p { margin-bottom: 2px; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="phishing-wrapper-hint">🎣 反钓鱼实训 / 校园通知</div>
+
+<div style="max-width:860px;margin:0 auto;padding:20px;">
+
+  <!-- Email banner -->
+  <div class="s5-email-banner">
+    <div class="s5-email-meta">
+      <span class="s5-email-label">发件人：</span>
+      <span class="s5-email-from">深圳大学教务部 &lt;admin@szu-jwc.com&gt;</span>
+      <span class="s5-email-label" style="margin-left:24px;">日期：</span>
+      <span>2026年6月12日</span>
+    </div>
+    <p class="s5-email-subject"><strong>主题：【重要】关于2025-2026学年第二学期选课确认与学籍信息核实通知</strong></p>
+    <div class="s5-email-body">
+      <p>各位同学：</p>
+      <p>根据学校教务工作安排，现对<strong>2025-2026学年第二学期</strong>选课结果进行最终确认。经系统比对，你的学籍信息存在<strong style="color:#c0392b;">异常项</strong>（详细见下文），请你务必在<strong>6月14日前</strong>完成信息核实，逾期将影响本学期成绩录入。</p>
+      <p>请击点以下链接进入确认页面：<br>
+        <a class="s5-fake-link" title="实际地址：http://szu-jwc.com/verify?token=abc123">深圳大学教务管理系统 —— 选课确认</a>
+      </p>
+      <p style="color:#888;font-size:13px;">此邮件由教务系统自动发送，请勿回复。</p>
+    </div>
+  </div>
+
+  <!-- Main page -->
+  <div class="s5-page">
+    <div class="s5-page-header">
+      <div class="s5-fake-logo">[深圳大学校徽]</div>
+      <div class="s5-page-title">
+        <h2>深圳大学教务部</h2>
+        <p>Office of Academic Affairs, Shen Zhen University</p>
+      </div>
+    </div>
+
+    <div class="s5-alert">
+      <span class="s5-alert-icon">!</span>
+      <div>
+        <strong>学籍信息异常提醒</strong>
+        <p>你的学籍档案中存在未核实的身份信息项。根据《深圳大学学籍管理规定》第二十一条，你需要在 48 小时内完成身份核实，否则相关选课记录将被标记为「待审核」状态。</p>
+      </div>
+    </div>
+
+    <div class="s5-info-table">
+      <h3>你的学籍信息（部分已脱敏）</h3>
+      <table>
+        <tr><td class="s5-td-label">姓名</td><td>张*明</td></tr>
+        <tr><td class="s5-td-label">学号</td><td>2023****4832</td></tr>
+        <tr><td class="s5-td-label">学院</td><td>计算机与软件学院</td></tr>
+        <tr><td class="s5-td-label">专业</td><td>计算机科学与技术</td></tr>
+        <tr><td class="s5-td-label">入学年份</td><td>2023</td></tr>
+        <tr><td class="s5-td-label">异常项</td><td><span style="color:#c0392b;font-weight:600;">身份证信息未验证</span></td></tr>
+      </table>
+    </div>
+
+    <div class="s5-form-section">
+      <h3>身份核实验证</h3>
+      <p class="s5-form-hint">请输入你的统一认证信息以完成身份核实：</p>
+      <form class="s5-form" id="phishForm">
+        <div class="s5-field"><label>学号</label><input type="text" placeholder="请输入完整学号" required id="studentId"></div>
+        <div class="s5-field"><label>统一认证密码</label><input type="password" placeholder="请输入密码" required id="password"></div>
+        <div class="s5-field"><label>身份证号 <span class="s5-field-note">（用于身份核验）</span></label><input type="text" placeholder="请输入18位身份证号" required id="idCard"></div>
+        <button type="submit" class="s5-submit">确认提交，完成验证</button>
+      </form>
+    </div>
+
+    <div class="s5-footer">
+      <p>咨询电话：138-8888-6688（李老师）</p>
+      <p>&copy; 2023 深圳大学教务部 &middot; 粤ICP备2023100000号-1</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="phish-modal-overlay hidden" id="modalOverlay">
+  <div class="phish-modal">
+    <div class="phish-modal-header">
+      <h2>你差点上当了</h2>
+      <p class="phish-modal-subtitle">你刚刚输入的隐私信息如果真的提交，可能已被不法分子获取。<br><strong>这只是一个反钓鱼安全意识教育页面——你的数据没有被保存。</strong></p>
+      <span class="phish-modal-badge">情景五：校园教务通知（利用真实信息）</span>
+    </div>
+    <div class="phish-modal-section">
+      <h3>你应该发现的疑点（Red Flags）</h3>
+      <div class="phish-redflags">
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">1</span><div><strong>发件邮箱域名可疑</strong><p>邮件显示的发件人为 admin@szu-jwc.com，而深圳大学教务部官方邮箱域名为 szu.edu.cn。正规教务通知一定使用学校官方邮箱。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">2</span><div><strong>链接文字与实际 URL 不符</strong><p>页面上的链接显示「教务管理系统」，但鼠标悬停后浏览器状态栏显示的实际地址是 szu-jwc.com/verify——链接显示文本与真实地址不一致，是最经典的钓鱼手法之一。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">3</span><div><strong>文字细节异常</strong><p>页面上出现了「击点此处」这种不自然的表达（正常应为「点击此处」），这是繁体中文「點擊此處」转简体后的残留痕迹——说明页面可能来自非大陆地区的诈骗团伙。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">4</span><div><strong>要求输入密码以「验证身份」</strong><p>正常的学籍/选课确认只需登录教务系统查看即可，系统不会额外弹出一个页面要求你「输入密码确认身份」——这是在试图窃取你的统一认证密码。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">5</span><div><strong>联系电话为个人手机号</strong><p>页面底部留的咨询电话是一个 11 位手机号而非学校固话。深圳大学教务部固话为 0755-2653XXXX 格式，不会使用个人手机号。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">6</span><div><strong>校徽为占位符而非真实图片</strong><p>页面顶部的校徽位置仅显示「[深圳大学校徽]」文字占位，真正的高校官网使用矢量 SVG 或高清 PNG 校徽。这暗示页面是截图拼凑的仿冒品。</p></div></div>
+      </div>
+    </div>
+    <div class="phish-modal-section">
+      <h3>防钓鱼知识点</h3>
+      <div class="phish-tips-carousel">
+        <div class="phish-tip-card">
+          <span class="phish-tip-number" id="tipNumber">1 / 6</span>
+          <p id="tipContent">收到任何要求填写个人信息的通知，先不要点击邮件/短信里的链接，而是直接打开浏览器输入学校官网地址登录查看。</p>
+        </div>
+        <div class="phish-tips-nav">
+          <button class="phish-tip-btn" id="tipPrev" disabled>上一条</button>
+          <button class="phish-tip-btn" id="tipNext">下一条</button>
+        </div>
+      </div>
+    </div>
+    <div class="phish-modal-section phish-prevention-box">
+      <h3>通用防钓鱼守则</h3>
+      <ul>
+        <li><strong>核对域名：</strong>在输入任何敏感信息前，先看浏览器地址栏的域名是否为官方域名</li>
+        <li><strong>不点来路不明的链接：</strong>邮件、短信、社交软件里的链接要格外警惕</li>
+        <li><strong>官方渠道验证：</strong>收到「紧急通知」先通过学校官网、官方公众号核实</li>
+        <li><strong>不轻易输入密码：</strong>被要求输入账号密码才能查看内容时，停下来想一想</li>
+        <li><strong>注意 HTTPS：</strong>正规网站地址栏有锁标志（但钓鱼网站也可能有，不能只看这个）</li>
+      </ul>
+    </div>
+    <button class="phish-modal-close" id="modalClose">我已了解，关闭</button>
+  </div>
+</div>
+
+<script>
+var tips = [
+  "收到任何要求填写个人信息的通知，先不要点击邮件/短信里的链接，而是直接打开浏览器输入学校官网地址登录查看。",
+  "鼠标悬停在链接上（不要点击），浏览器左下角会显示真实目标 URL。如果显示文本和实际地址不一致，100% 是钓鱼。",
+  "正规高校的教务通知从来不需要你在邮件链接里「确认信息」或「验证身份」——登录统一认证系统后一切都在那里。",
+  "注意文字质量：正规高校官网经过反复校对，不会出现「击点」「登入」等港台用语残留或错别字。",
+  "核对发件人完整邮箱地址（不是显示名称，是实际地址）：深圳大学教务邮箱是 jwb@szu.edu.cn，不是任何其他域名。",
+  "遇到可疑页面，查看页面底部 ICP 备案号，去工信部 ICP 查询系统验证是否与主办单位一致。"
+];
+var currentTip = 0;
+var overlay = document.getElementById('modalOverlay');
+var tipNumberEl = document.getElementById('tipNumber');
+var tipContentEl = document.getElementById('tipContent');
+var tipPrevBtn = document.getElementById('tipPrev');
+var tipNextBtn = document.getElementById('tipNext');
+
+function updateTip() {
+  tipNumberEl.textContent = (currentTip + 1) + ' / ' + tips.length;
+  tipContentEl.textContent = tips[currentTip];
+  tipPrevBtn.disabled = currentTip === 0;
+  tipNextBtn.disabled = currentTip === tips.length - 1;
+}
+tipPrevBtn.addEventListener('click', function() { if (currentTip > 0) { currentTip--; updateTip(); } });
+tipNextBtn.addEventListener('click', function() { if (currentTip < tips.length - 1) { currentTip++; updateTip(); } });
+
+document.getElementById('phishForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  overlay.classList.remove('hidden');
+  currentTip = 0;
+  updateTip();
+});
+function closeModal() {
+  overlay.classList.add('hidden');
+  document.getElementById('phishForm').reset();
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+</script>
+</body>
+</html>

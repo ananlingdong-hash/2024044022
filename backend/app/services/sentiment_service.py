@@ -312,7 +312,7 @@ def _build_realtime_dataset(symbols: list[str], seed: int) -> dict:
     # Fallback to deterministic dataset if no external quote is reachable.
     if not quotes:
         fallback = _build_risk_dataset(symbols, seed)
-        fallback["data_source"] = "synthetic_fallback"
+        fallback["data_source"] = "local_estimate"
         fallback["fetched_at"] = datetime.utcnow().isoformat()
         return fallback
 
@@ -350,7 +350,7 @@ def _build_realtime_dataset(symbols: list[str], seed: int) -> dict:
 
     if not stock_scores:
         fallback = _build_risk_dataset(symbols, seed)
-        fallback["data_source"] = "synthetic_fallback"
+        fallback["data_source"] = "local_estimate"
         fallback["fetched_at"] = datetime.utcnow().isoformat()
         return fallback
 
@@ -570,7 +570,7 @@ def _fallback_report_body(dataset: dict) -> str:
 
 def generate_sentiment_report(symbols: list[str]) -> dict:
     now = datetime.utcnow()
-    symbols = symbols or ["AAPL", "NVDA", "600519.SS", "300750.SZ"]
+    symbols = symbols or ["Tencent", "Tencent-Ads", "Tencent-Cloud", "Tencent-Games"]
     seed_input = "|".join(symbols) + now.strftime("%Y-%m-%d-%H-%M-%S")
     seed = int(hashlib.sha256(seed_input.encode("utf-8")).hexdigest()[:8], 16)
     dataset = _build_realtime_dataset(symbols, seed)

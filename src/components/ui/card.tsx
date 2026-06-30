@@ -2,7 +2,7 @@ import { useRef, type HTMLAttributes, type MouseEvent } from "react"
 import { cn } from "@/lib/utils"
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "soft" | "elevated" | "glass" | "flat"
+  variant?: "default" | "soft" | "elevated" | "glass" | "flat" | "cyber"
   tilt?: boolean
   glow?: boolean
   hoverLift?: boolean
@@ -20,6 +20,8 @@ const variantClasses: Record<string, string> = {
     "bg-[rgba(22,18,42,0.78)] border border-[rgba(139,132,190,0.12)] backdrop-blur-xl shadow-[0_4px_24px_rgba(8,6,20,0.30)]",
   flat:
     "bg-[#191532] border border-[rgba(139,132,190,0.08)]",
+  cyber:
+    "bg-[rgba(18,16,38,0.62)] border border-[rgba(165,153,240,0.10)] backdrop-blur-lg shadow-[0_4px_24px_rgba(8,6,20,0.35),inset_0_1px_0_rgba(255,255,255,0.03)] hover:border-[rgba(165,153,240,0.20)] hover:shadow-[0_8px_32px_rgba(8,6,20,0.45),0_0_0_1px_rgba(165,153,240,0.06)]",
 }
 
 const paddingClasses: Record<string, string> = {

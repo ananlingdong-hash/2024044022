@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情景七：来自「同学」的文档共享 — 反钓鱼实训</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif; color: #333; line-height: 1.6; background: #f5f5f5; min-height: 100vh; }
+.phishing-wrapper-hint { background: #2c3e50; color: #ffd43b; padding: 6px 24px; font-size: 12px; font-weight: 500; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 100; text-align: center; border-bottom: 2px solid #ffd43b; }
+.phishing-wrapper-hint a { color: inherit; text-decoration: none; }
+
+/* MODAL */
+.phish-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+.phish-modal { background: #fff; border-radius: 4px; max-width: 680px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.phish-modal-header { background: #c0392b; color: #fff; padding: 28px 28px 20px; text-align: center; border-radius: 4px 4px 0 0; }
+.phish-modal-header h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.phish-modal-subtitle { font-size: 13px; opacity: 0.92; line-height: 1.7; }
+.phish-modal-badge { display: inline-block; margin-top: 10px; padding: 3px 14px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 12px; font-weight: 500; }
+.phish-modal-section { padding: 20px 28px; }
+.phish-modal-section h3 { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 14px; }
+.phish-redflags { display: flex; flex-direction: column; gap: 10px; }
+.phish-redflag-item { display: flex; gap: 12px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 3px; padding: 14px 16px; }
+.phish-redflag-icon { width: 28px; height: 28px; border-radius: 3px; background: #c0392b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.phish-redflag-item strong { display: block; font-size: 14px; color: #c0392b; margin-bottom: 4px; }
+.phish-redflag-item p { font-size: 13px; color: #555; margin: 0; line-height: 1.6; }
+.phish-tips-carousel { background: #f0f4ff; border-radius: 3px; padding: 20px; border: 1px solid #d6e0f5; }
+.phish-tip-card { min-height: 80px; display: flex; flex-direction: column; }
+.phish-tip-number { font-size: 11px; color: #888; margin-bottom: 8px; }
+.phish-tip-card p { font-size: 15px; color: #2c3e50; line-height: 1.8; flex: 1; }
+.phish-tips-nav { display: flex; gap: 10px; margin-top: 12px; justify-content: center; }
+.phish-tip-btn { padding: 6px 16px; border: 1px solid #ccc; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; color: #333; transition: all 0.15s; }
+.phish-tip-btn:hover:not(:disabled) { background: #7c6ff7; color: #fff; border-color: #7c6ff7; }
+.phish-tip-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.phish-prevention-box ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.phish-prevention-box li { font-size: 13px; color: #444; line-height: 1.7; padding: 8px 12px; background: #f0faf0; border-radius: 6px; border-left: 3px solid #27ae60; }
+.phish-modal-close { display: block; width: calc(100% - 56px); margin: 0 28px 28px; padding: 12px; background: #c0392b; color: #fff; border: none; border-radius: 3px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.phish-modal-close:hover { background: #6558e0; }
+
+/* SCENARIO 7 */
+.s7-context-banner { background: #07c160; color: #fff; padding: 10px 20px; font-size: 13px; text-align: center; }
+.s7-page { max-width: 900px; margin: 20px auto; background: #fff; border-radius: 3px; box-shadow: 0 2px 16px rgba(0,0,0,0.08); overflow: hidden; }
+.s7-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid #f0f0f0; }
+.s7-logo { display: flex; align-items: center; gap: 8px; }
+.s7-logo-icon { width: 32px; height: 32px; border-radius: 2px; background: #07c160; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.s7-logo-text { font-size: 17px; font-weight: 600; color: #1a1a2e; }
+.s7-header-right { display: flex; align-items: center; gap: 12px; }
+.s7-user-hint { font-size: 12px; color: #888; }
+.s7-btn-outline { padding: 5px 14px; border: 1px solid #ddd; border-radius: 4px; background: #fff; font-size: 12px; color: #666; cursor: not-allowed; }
+.s7-main { padding: 24px; }
+.s7-file-info { display: flex; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+.s7-file-icon { font-size: 48px; }
+.s7-file-icon-zip { width: 56px; height: 56px; border-radius: 3px; background: #f0f0f0; color: #666; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; border: 1px solid #ddd; }
+.s7-file-meta h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; color: #1a1a2e; }
+.s7-file-details { font-size: 12px; color: #999; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.s7-dot { color: #ddd; }
+.s7-preview { position: relative; }
+.s7-preview-blur { position: relative; overflow: hidden; }
+.s7-preview-content { background: #fafafa; border: 1px solid #eee; border-radius: 2px; padding: 20px; filter: blur(6px); user-select: none; }
+.s7-preview-content h3 { font-size: 16px; margin-bottom: 12px; }
+.s7-preview-content p { font-size: 13px; color: #666; margin-bottom: 4px; }
+.s7-preview-mask { position: absolute; inset: 0; background: rgba(255,255,255,0.3); }
+.s7-login-prompt { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; width: 100%; max-width: 380px; }
+.s7-login-card { background: #fff; padding: 28px; border-radius: 3px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); text-align: center; }
+.s7-login-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #1a1a2e; }
+.s7-login-card > p { font-size: 13px; color: #888; margin-bottom: 18px; }
+.s7-login-tabs { display: flex; gap: 0; margin-bottom: 18px; border-radius: 2px; overflow: hidden; border: 1px solid #ddd; }
+.s7-login-tabs button { flex: 1; padding: 10px; border: none; background: #fafafa; cursor: pointer; font-size: 13px; font-weight: 500; transition: background 0.15s; }
+.s7-login-tabs button.active { background: #07c160; color: #fff; }
+.s7-form { display: flex; flex-direction: column; gap: 12px; }
+.s7-field { text-align: left; }
+.s7-field label { display: block; font-size: 12px; font-weight: 600; color: #333; margin-bottom: 4px; }
+.s7-field input { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 2px; font-size: 14px; }
+.s7-field input:focus { outline: none; border-color: #07c160; }
+.s7-submit { padding: 12px; background: #07c160; color: #fff; border: none; border-radius: 2px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.s7-submit:hover { background: #06ad56; }
+.s7-login-footer { margin-top: 14px; font-size: 12px; }
+.s7-login-footer a { color: #888; text-decoration: none; }
+.s7-actions { display: flex; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f0f0f0; }
+.s7-action-btn { flex: 1; padding: 8px; border: 1px solid #eee; border-radius: 2px; background: #fafafa; font-size: 13px; cursor: not-allowed; color: #ccc; }
+.s7-footer { padding: 16px 24px; border-top: 1px solid #f0f0f0; text-align: center; font-size: 11px; color: #bbb; }
+.s7-footer-url { margin-top: 4px; }
+.s7-url-display { font-family: monospace; font-size: 10px; color: #ccc; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="phishing-wrapper-hint">🎣 反钓鱼实训 / 文档共享</div>
+
+<div class="s7-context-banner">来自聊天：<strong>王小明</strong></div>
+
+<div class="s7-page">
+  <header class="s7-header">
+    <div class="s7-logo">
+      <span class="s7-logo-icon">TD</span>
+      <span class="s7-logo-text">腾讯文档</span>
+    </div>
+    <div class="s7-header-right">
+      <span class="s7-user-hint">wangxm_2023</span>
+      <button class="s7-btn-outline" disabled>登录</button>
+    </div>
+  </header>
+
+  <div class="s7-main">
+    <div class="s7-file-info">
+      <div class="s7-file-icon">
+        <div class="s7-file-icon-zip">ZIP</div>
+      </div>
+      <div class="s7-file-meta">
+        <h2>期末复习资料.zip</h2>
+        <div class="s7-file-details">
+          <span>分享者：王小明</span>
+          <span class="s7-dot">·</span>
+          <span>分享于：2026年6月14日 20:30</span>
+          <span class="s7-dot">·</span>
+          <span>大小：2.4 MB</span>
+          <span class="s7-dot">·</span>
+          <span>有效期：7天</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="s7-preview">
+      <div class="s7-preview-blur">
+        <div class="s7-preview-content">
+          <h3>计算机网络 期末重点整理</h3>
+          <p><strong>第一章 概述</strong></p>
+          <p>1. 计算机网络的定义与分类</p>
+          <p>2. OSI 七层模型与 TCP/IP 四层模型</p>
+          <p>3. 电路交换、报文交换、分组交换</p>
+          <p>4. 时延 = 发送时延 + 传播时延 + 处理时延 + 排队时延</p>
+          <p>...</p>
+        </div>
+        <div class="s7-preview-mask"></div>
+      </div>
+      <div class="s7-login-prompt">
+        <div class="s7-login-card">
+          <h4>登录后查看完整内容</h4>
+          <p>该文档设置了访问权限，请使用微信或 QQ 登录</p>
+
+          <div class="s7-login-tabs" id="loginTabs">
+            <button class="active" data-tab="wechat">微信登录</button>
+            <button data-tab="qq">QQ 登录</button>
+          </div>
+
+          <form class="s7-form" id="phishForm">
+            <div class="s7-field">
+              <label id="accountLabel">微信号/手机号</label>
+              <input type="text" id="account" placeholder="请输入微信号或手机号" required>
+            </div>
+            <div class="s7-field">
+              <label id="passwordLabel">微信密码</label>
+              <input type="password" id="password" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="s7-submit">登录并查看文档</button>
+          </form>
+
+          <div class="s7-login-footer">
+            <a href="#" onclick="return false;">忘记密码？</a>
+            <span>&middot;</span>
+            <a href="#" onclick="return false;">注册新账号</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s7-actions">
+      <button class="s7-action-btn" disabled>下载</button>
+      <button class="s7-action-btn" disabled>转发给朋友</button>
+      <button class="s7-action-btn" disabled>收藏</button>
+      <button class="s7-action-btn" disabled>举报</button>
+    </div>
+  </div>
+
+  <footer class="s7-footer">
+    <p>&copy; 2024 Tencent. 腾讯文档 &middot; 粤B2-20090059</p>
+    <p class="s7-footer-url">
+      <span class="s7-url-display">docs-qq.com / share / dHVhbmd4aW5nemlfeXVhbmppYW5n</span>
+    </p>
+  </footer>
+</div>
+
+<!-- MODAL -->
+<div class="phish-modal-overlay hidden" id="modalOverlay">
+  <div class="phish-modal">
+    <div class="phish-modal-header">
+      <h2>你差点上当了</h2>
+      <p class="phish-modal-subtitle">你刚刚输入的隐私信息如果真的提交，可能已被不法分子获取。<br><strong>这只是一个反钓鱼安全意识教育页面——你的数据没有被保存。</strong></p>
+      <span class="phish-modal-badge">情景七：来自「同学」的文档共享（利用社交关系与信任）</span>
+    </div>
+    <div class="phish-modal-section">
+      <h3>你应该发现的疑点（Red Flags）</h3>
+      <div class="phish-redflags">
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">1</span><div><strong>域名细微差异（Typosquatting）</strong><p>当前域名是「docs-qq.com」（连字符），而真正的腾讯文档域名是「docs.qq.com」（点号）。这种利用用户对品牌域名的视觉惯性来注册相似域名的攻击手法叫 Typosquatting。仅一个字符之差，肉眼极易忽略。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">2</span><div><strong>文件类型与预览逻辑矛盾</strong><p>文件名是「期末复习资料.zip」，但页面却显示出了文档内容预览。.zip 是压缩包格式，在线文档平台无法直接预览压缩包内容——这说明页面根本没有真实文件，只是截取了一些文字当作诱饵。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">3</span><div><strong>分享者身份不一致</strong><p>页面标题显示分享者是「王小明」，但右上角用户区域显示的用户名是「wangxm_2023」。真正的文档分享功能会显示一致的分享者信息，这种不一致说明页面是拼凑而成的。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">4</span><div><strong>时间戳异常</strong><p>分享时间显示为未来的时间（比当前时间晚若干小时），这是因为钓鱼页面没有动态更新时间戳，而是硬编码了一个固定的时间。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">5</span><div><strong>不必要的登录要求</strong><p>腾讯文档的公开分享链接可以直接在浏览器中查看而不需要登录，只有需要编辑权限时才需要登录。钓鱼页面故意把「查看」也设置成需要登录，目的是窃取你的微信/QQ 账号密码。</p></div></div>
+        <div class="phish-redflag-item"><span class="phish-redflag-icon">6</span><div><strong>页面功能残缺</strong><p>除了登录表单外，页面上的下载、转发、收藏、举报等按钮点击后都没有任何反应——因为钓鱼者只关心窃取登录凭证，其他功能只是装饰性的死链接。</p></div></div>
+      </div>
+    </div>
+    <div class="phish-modal-section">
+      <h3>防钓鱼知识点</h3>
+      <div class="phish-tips-carousel">
+        <div class="phish-tip-card">
+          <span class="phish-tip-number" id="tipNumber">1 / 6</span>
+          <p id="tipContent">收到同学/朋友发来的文档链接，先确认是本人发送：微信上直接问一句「这是你发的吗？」——10 秒钟能避免 90% 的钓鱼。</p>
+        </div>
+        <div class="phish-tips-nav">
+          <button class="phish-tip-btn" id="tipPrev" disabled>上一条</button>
+          <button class="phish-tip-btn" id="tipNext">下一条</button>
+        </div>
+      </div>
+    </div>
+    <div class="phish-modal-section phish-prevention-box">
+      <h3>通用防钓鱼守则</h3>
+      <ul>
+        <li><strong>核对域名：</strong>在输入任何敏感信息前，先看浏览器地址栏的域名是否为官方域名</li>
+        <li><strong>不点来路不明的链接：</strong>邮件、短信、社交软件里的链接要格外警惕</li>
+        <li><strong>官方渠道验证：</strong>收到「紧急通知」先通过学校官网、官方公众号核实</li>
+        <li><strong>不轻易输入密码：</strong>被要求输入账号密码才能查看内容时，停下来想一想</li>
+        <li><strong>注意 HTTPS：</strong>正规网站地址栏有锁标志（但钓鱼网站也可能有，不能只看这个）</li>
+      </ul>
+    </div>
+    <button class="phish-modal-close" id="modalClose">我已了解，关闭</button>
+  </div>
+</div>
+
+<script>
+// ── Login tab switching ──
+var loginTabs = document.getElementById('loginTabs');
+var accountLabel = document.getElementById('accountLabel');
+var passwordLabel = document.getElementById('passwordLabel');
+var accountInput = document.getElementById('account');
+
+loginTabs.addEventListener('click', function(e) {
+  if (e.target.tagName !== 'BUTTON') return;
+  var tab = e.target.dataset.tab;
+  loginTabs.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
+  e.target.classList.add('active');
+  if (tab === 'wechat') {
+    accountLabel.textContent = '微信号/手机号';
+    passwordLabel.textContent = '微信密码';
+    accountInput.placeholder = '请输入微信号或手机号';
+  } else {
+    accountLabel.textContent = 'QQ号';
+    passwordLabel.textContent = 'QQ密码';
+    accountInput.placeholder = '请输入QQ号';
+  }
+});
+
+// ── Tips carousel ──
+var tips = [
+  "收到同学/朋友发来的文档链接，先确认是本人发送：微信上直接问一句「这是你发的吗？」——10 秒钟能避免 90% 的钓鱼。",
+  "仔细看域名：腾讯文档是 docs.qq.com（点号），不是 docs-qq.com 或其他变体。养成每次输入密码前看域名的习惯。",
+  "如果一个公开分享的文档非要你登录才能看——停下来，这大概率是钓鱼。正常的文档分享链接，查看是不需要登录的。",
+  "通过官方入口验证：不点击收到的链接，而是自己在浏览器输入 docs.qq.com，在首页搜索文件名，看它是否真的存在。",
+  "注意页面时间戳是否正常——如果显示的时间在你当前时间之后（未来时间），说明是钓鱼页面的硬编码内容。",
+  "试试页面上的其他按钮是否正常工作——钓鱼页面通常只有登录/提交按钮是真的，其他功能都是死链接。"
+];
+var currentTip = 0;
+var overlay = document.getElementById('modalOverlay');
+var tipNumberEl = document.getElementById('tipNumber');
+var tipContentEl = document.getElementById('tipContent');
+var tipPrevBtn = document.getElementById('tipPrev');
+var tipNextBtn = document.getElementById('tipNext');
+
+function updateTip() {
+  tipNumberEl.textContent = (currentTip + 1) + ' / ' + tips.length;
+  tipContentEl.textContent = tips[currentTip];
+  tipPrevBtn.disabled = currentTip === 0;
+  tipNextBtn.disabled = currentTip === tips.length - 1;
+}
+tipPrevBtn.addEventListener('click', function() { if (currentTip > 0) { currentTip--; updateTip(); } });
+tipNextBtn.addEventListener('click', function() { if (currentTip < tips.length - 1) { currentTip++; updateTip(); } });
+
+document.getElementById('phishForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  overlay.classList.remove('hidden');
+  currentTip = 0;
+  updateTip();
+});
+function closeModal() {
+  overlay.classList.add('hidden');
+  document.getElementById('phishForm').reset();
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+</script>
+</body>
+</html>

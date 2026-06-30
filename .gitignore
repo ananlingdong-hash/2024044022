@@ -14,6 +14,9 @@ dist-ssr
 backend/data/
 *.db
 backend/.env
+__pycache__/
+*.py[cod]
+proxy_*.txt
 
 # Editor directories and files
 .vscode/*

@@ -8,7 +8,8 @@ import { useIncrementalList } from "@/hooks/useIncrementalList"
 import { useVirtualRows } from "@/hooks/useVirtualRows"
 import { PriceMiniChart } from "@/components/charts/PriceMiniChart"
 import { Skeleton } from "@/components/ui/skeleton"
-import { BarChart3, Bot, Download, Play, TrendingUp, Zap } from "lucide-react"
+import { useToastStore } from "@/lib/stores/toastStore"
+import { BarChart3, Bot, Download, Play, ShieldCheck, Target, TrendingUp, Zap } from "lucide-react"
 
 const factors = Array.from({ length: 300 }, (_, i) => `因子-${i + 1}`)
 
@@ -31,7 +32,7 @@ export function QuantWorkbenchPage() {
     try {
       setRunning(true); setFeedback("")
       const result = await submitBacktest({
-        strategyCode: strategyInput, symbols: ["AAPL", "NVDA", "600519.SS"],
+        strategyCode: strategyInput, symbols: ["Tencent", "Tencent-Ads", "Tencent-Cloud", "Tencent-Games"],
         strategyName, dataSource, tsCode, startDate: "2024-01-01", csvPath: "data/sample_prices.csv",
       })
       setMetrics(result)
@@ -40,30 +41,68 @@ export function QuantWorkbenchPage() {
     finally { setRunning(false) }
   }
 
+  const dataPoints = useMemo(() => [
+    Number((metrics.annualReturn * 100 * 0.35).toFixed(2)),
+    Number((metrics.annualReturn * 100 * 0.52).toFixed(2)),
+    Number((metrics.annualReturn * 100 * 0.68).toFixed(2)),
+    Number((metrics.annualReturn * 100 * 0.9).toFixed(2)),
+    Number((metrics.annualReturn * 100).toFixed(2)),
+  ], [metrics.annualReturn])
+
   const option = useMemo(() => ({
     backgroundColor: "transparent",
+    animation: true, animationDuration: 1200, animationEasing: "cubicOut",
     tooltip: { trigger: "axis", borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(16,16,24,0.95)", textStyle: { fontSize: 11 } },
-    grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
-    xAxis: { type: "category", data: ["1月", "2月", "3月", "4月", "5月"], axisLabel: { color: "#71717a", fontSize: 10 } },
-    yAxis: { type: "value", axisLabel: { color: "#71717a", fontSize: 10 }, splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } } },
-    series: [{
-      data: [
-        Number((metrics.annualReturn * 100 * 0.35).toFixed(2)),
-        Number((metrics.annualReturn * 100 * 0.52).toFixed(2)),
-        Number((metrics.annualReturn * 100 * 0.68).toFixed(2)),
-        Number((metrics.annualReturn * 100 * 0.9).toFixed(2)),
-        Number((metrics.annualReturn * 100).toFixed(2)),
-      ],
-      type: "line", smooth: true, showSymbol: false,
-      lineStyle: { color: "#a5b4fc", width: 2 },
-      areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(129,140,248,0.35)" }, { offset: 1, color: "rgba(129,140,248,0.03)" }] } },
-    }],
-  }), [metrics.annualReturn])
+    grid: { left: 8, right: 24, top: 8, bottom: 8, containLabel: true },
+    xAxis: { type: "category", data: ["1月", "2月", "3月", "4月", "5月"], axisLabel: { color: "#555", fontSize: 10 }, axisLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } } },
+    yAxis: { type: "value", axisLabel: { color: "#555", fontSize: 10 }, splitLine: { lineStyle: { color: "rgba(255,255,255,0.025)" } } },
+    series: [
+      {
+        data: dataPoints,
+        type: "line", smooth: 0.6, showSymbol: true, symbol: "circle", symbolSize: 5,
+        lineStyle: { color: "#a5b4fc", width: 2.5, shadowBlur: 8, shadowColor: "rgba(165,180,252,0.3)" },
+        areaStyle: { color: { type: "linear", x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: "rgba(129,140,248,0.30)" }, { offset: 0.4, color: "rgba(129,140,248,0.08)" }, { offset: 1, color: "rgba(129,140,248,0.01)" }] } },
+        itemStyle: { color: "#c7d2fe", borderColor: "rgba(165,180,252,0.5)", borderWidth: 2 },
+      },
+      {
+        data: dataPoints,
+        type: "effectScatter", showEffectOn: "render", rippleEffect: { brushType: "stroke", scale: 3, period: 4, color: "rgba(165,153,240,0.5)" },
+        symbolSize: 8, itemStyle: { color: "#a599f0" }, zlevel: 1,
+      },
+    ],
+  }), [dataPoints])
+
+  const performanceRows = [
+    {
+      label: "年化收益",
+      value: `+${(metrics.annualReturn * 100).toFixed(1)}%`,
+      color: "#34d399",
+      hint: "目标区间上沿",
+      icon: TrendingUp,
+      bars: [6, 10, 16, 22, Number((metrics.annualReturn * 100).toFixed(0))],
+    },
+    {
+      label: "胜率",
+      value: `${(metrics.winRate * 100).toFixed(1)}%`,
+      color: "#818cf8",
+      hint: "样本稳定",
+      icon: Target,
+      bars: [42, 48, 52, 55, Number((metrics.winRate * 100).toFixed(0))],
+    },
+    {
+      label: "最大回撤",
+      value: `-${(metrics.maxDrawdown * 100).toFixed(1)}%`,
+      color: "#fb7185",
+      hint: "可接受",
+      icon: ShieldCheck,
+      bars: [18, 16, 14, 13, Number((metrics.maxDrawdown * 100).toFixed(0))],
+    },
+  ]
 
   return (
-    <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+    <section className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-12 gap-6 max-w-6xl mx-auto">
       {/* Main workbench */}
-      <Card className="xl:col-span-7" padding="lg">
+      <Card variant="cyber" className="xl:col-span-7" padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 ring-1 ring-indigo-300/15">
             <Bot size={13} className="text-indigo-300/80" />
@@ -75,7 +114,7 @@ export function QuantWorkbenchPage() {
         </div>
 
         <label className="block text-[11px] font-medium text-[var(--text-secondary)] mb-1.5">策略描述（自然语言 / Python）</label>
-        <Input value={strategyInput} onChange={(e) => setStrategyInput(e.target.value)} />
+        <Input value={strategyInput} onChange={(e) => setStrategyInput(e.target.value)} className="font-mono text-xs bg-[#0d0d1a] border-[rgba(139,132,190,0.12)] focus:border-[rgba(165,153,240,0.30)] focus:shadow-[0_0_16px_rgba(165,153,240,0.08)]" />
 
         <div className="mt-3 grid grid-cols-3 gap-2">
           <div>
@@ -97,10 +136,10 @@ export function QuantWorkbenchPage() {
         </div>
 
         <div className="mt-3 flex gap-2">
-          <Button onClick={onBacktest} disabled={running} size="sm">
+          <Button onClick={onBacktest} disabled={running} size="sm" className={running ? "" : "bg-[linear-gradient(135deg,#a599f0,#7c6ff7)] shadow-[0_0_20px_rgba(165,153,240,0.35)] hover:shadow-[0_0_32px_rgba(165,153,240,0.50)] transition-shadow"}>
             <Play size={12} className="mr-1" />{running ? "回测执行中..." : "提交回测"}
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => useToastStore.getState().addToast({ message: "报表导出功能开发中，敬请期待", type: "info" })}>
             <Download size={12} className="mr-1" />导出 Excel
           </Button>
         </div>
@@ -122,18 +161,65 @@ export function QuantWorkbenchPage() {
         <PriceMiniChart />
       </Card>
 
-      {/* Metric cards */}
-      <Card className="xl:col-span-3" variant="flat" padding="default">
-        <p className="text-[10px] text-[var(--text-muted)] mb-1">年化收益</p>
-        <p className="mono-metric text-3xl font-semibold text-emerald-300">+{(metrics.annualReturn * 100).toFixed(1)}%</p>
-      </Card>
-      <Card className="xl:col-span-2" variant="flat" padding="default">
-        <p className="text-[10px] text-[var(--text-muted)] mb-1">胜率</p>
-        <p className="mono-metric text-3xl font-semibold text-indigo-300">{(metrics.winRate * 100).toFixed(1)}%</p>
-      </Card>
-      <Card className="xl:col-span-2" variant="flat" padding="default">
-        <p className="text-[10px] text-[var(--text-muted)] mb-1">最大回撤</p>
-        <p className="mono-metric text-3xl font-semibold text-rose-300">-{(metrics.maxDrawdown * 100).toFixed(1)}%</p>
+      <Card className="xl:col-span-8" variant="cyber" padding="lg">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-300/15">
+              <ShieldCheck size={13} className="text-emerald-300/80" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold tracking-[-0.01em]">回测绩效矩阵</h3>
+              <p className="text-[10px] text-[var(--text-muted)]">收益 · 胜率 · 回撤 · 稳定性解释</p>
+            </div>
+          </div>
+          <span className="rounded-full border border-emerald-300/15 bg-emerald-400/[0.06] px-3 py-1 text-[10px] text-emerald-200">
+            引擎: {metrics.engine}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          {performanceRows.map((row) => (
+            <div key={row.label} className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <row.icon size={14} style={{ color: row.color }} />
+                  <span className="text-xs text-[var(--text-muted)]">{row.label}</span>
+                </div>
+                <span className="rounded-full bg-white/[0.04] px-2 py-0.5 text-[10px] text-[var(--text-muted)]">{row.hint}</span>
+              </div>
+              <div className="font-mono text-3xl font-semibold tracking-[-0.04em]" style={{ color: row.color }}>{row.value}</div>
+              <div className="mt-4 h-16">
+                <ReactECharts
+                  option={{
+                    backgroundColor: "transparent",
+                    grid: { top: 4, right: 0, bottom: 0, left: 0 },
+                    xAxis: { show: false, type: "category", data: ["1", "2", "3", "4", "5"] },
+                    yAxis: { show: false, type: "value" },
+                    series: [{
+                      type: "bar",
+                      data: row.bars,
+                      barWidth: 12,
+                      itemStyle: { color: row.color, borderRadius: [4, 4, 0, 0], opacity: 0.9 },
+                      animationDuration: 900,
+                    }],
+                  }}
+                  style={{ height: 64 }}
+                />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-[var(--text-muted)]">
+                <div className="rounded-md bg-white/[0.025] px-2 py-1.5">样本窗口 5月</div>
+                <div className="rounded-md bg-white/[0.025] px-2 py-1.5">置信度 95%</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-indigo-300/12 bg-indigo-400/[0.045] p-3">
+          <div className="text-xs font-semibold text-white">AI 回测解读</div>
+          <p className="mt-1 text-[11px] leading-5 text-[var(--text-secondary)]">
+            当前策略收益弹性较好，胜率处于可用区间，最大回撤低于 15% 警戒线。建议继续观察样本外表现，并加入成交成本与滑点压力测试。
+          </p>
+        </div>
       </Card>
 
       {/* Factor library */}

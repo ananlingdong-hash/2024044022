@@ -29,6 +29,32 @@ class Settings:
     app_name: str = "AstraQuant AI Backend"
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./backend/data/astrquant.db")
     cors_origins: list[str] = None  # type: ignore[assignment]
+
+    # Performance tuning
+    monte_carlo_simulations: int = 10000
+    monte_carlo_method: str = "sobol"  # "sobol" | "pseudorandom"
+    risk_evaluation_timeout_ms: int = 3000
+    strategy_optimization_timeout_ms: int = 10000
+    nsga2_population_size: int = 60
+    nsga2_max_generations: int = 100
+    nsga2_plateau_threshold: int = 50
+
+    # Cache TTL (seconds)
+    fx_cache_ttl: int = 1       # Exchange rates: 1 second
+    benchmark_cache_ttl: int = 3600  # Industry benchmark: 1 hour
+    credit_cache_ttl: int = 300     # Credit data: 5 minutes
+    supply_cache_ttl: int = 600     # Supply chain: 10 minutes
+
+    # WebSocket
+    kpi_push_interval_sec: int = 15
+
+    # Retry
+    pdca_max_retries: int = 3
+    pdca_backoff_base_ms: int = 1000
+
+    # Security
+    encrypt_sensitive_data: bool = True
+    log_masking_enabled: bool = True
     minimax_api_key: str | None = _first_non_empty(
         os.getenv("MINIMAX_API_KEY"),
         backend_env.get("MINIMAX_API_KEY"),

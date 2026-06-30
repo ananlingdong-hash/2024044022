@@ -1,27 +1,25 @@
 import { http } from "./http"
 import type {
-  RiskEvaluateResponse,
-  StrategyOptimizeResponse,
-  PdcaExecuteResponse,
   FeedbackResponse,
-  RiskReportResponse,
-  MonitorKpiItem,
-  RiskEventItem,
-  ScenarioFxResponse,
-  ScenarioCreditResponse,
-  ScenarioSupplyResponse,
   LoginV1Response,
+  MonitorKpiItem,
+  PdcaExecuteResponse,
+  RiskEvaluateResponse,
+  RiskEventItem,
+  RiskReportResponse,
+  ScenarioCreditResponse,
+  ScenarioFxResponse,
+  ScenarioSupplyResponse,
+  StrategyOptimizeResponse,
 } from "@/types/risk-response"
 
 const V1 = "/v1"
 
-// ── Auth ──
 export async function loginV1(email: string, password: string): Promise<LoginV1Response> {
   const { data } = await http.post(`${V1}/auth/login`, { email, password })
   return data
 }
 
-// ── Risk evaluate ──
 export async function evaluateRisk(params: {
   portfolio_value?: number
   confidence?: number
@@ -31,7 +29,7 @@ export async function evaluateRisk(params: {
     const { data } = await http.post(`${V1}/risk/evaluate`, {
       portfolio_value: params.portfolio_value ?? 10_000_000,
       confidence: params.confidence ?? 0.95,
-      factors: params.factors ?? ["汇率", "信用", "供应链"],
+      factors: params.factors ?? ["监管合规", "AI算力", "全球化经营"],
     })
     return data
   } catch {
@@ -39,7 +37,6 @@ export async function evaluateRisk(params: {
   }
 }
 
-// ── Strategy optimize ──
 export async function optimizeStrategy(params: {
   risk_appetite?: number
   budget?: number
@@ -57,13 +54,11 @@ export async function optimizeStrategy(params: {
   }
 }
 
-// ── PDCA execute ──
 export async function executePdca(planId: string): Promise<PdcaExecuteResponse> {
   const { data } = await http.post(`${V1}/pdca/execute/${planId}`, { plan_id: planId, action: "execute" })
   return data
 }
 
-// ── Feedback ──
 export async function submitFeedback(params: {
   strategy_id: string
   plan_params?: string
@@ -83,13 +78,11 @@ export async function submitFeedback(params: {
   return data
 }
 
-// ── Risk report ──
 export async function getRiskReport(id: string): Promise<RiskReportResponse> {
   const { data } = await http.get(`${V1}/risk/report/${id}`)
   return data
 }
 
-// ── Monitor KPI ──
 export async function getMonitorKpi(): Promise<{ kpis: MonitorKpiItem[]; period: string }> {
   try {
     const { data } = await http.get(`${V1}/monitor/kpi`)
@@ -99,7 +92,6 @@ export async function getMonitorKpi(): Promise<{ kpis: MonitorKpiItem[]; period:
   }
 }
 
-// ── Monitor events ──
 export async function getMonitorEvents(): Promise<{ events: RiskEventItem[] }> {
   try {
     const { data } = await http.get(`${V1}/monitor/events`)
@@ -109,7 +101,6 @@ export async function getMonitorEvents(): Promise<{ events: RiskEventItem[] }> {
   }
 }
 
-// ── Scenario FX ──
 export async function getScenarioFx(): Promise<ScenarioFxResponse> {
   try {
     const { data } = await http.get(`${V1}/scenario/fx`)
@@ -119,7 +110,6 @@ export async function getScenarioFx(): Promise<ScenarioFxResponse> {
   }
 }
 
-// ── Scenario Credit ──
 export async function getScenarioCredit(): Promise<ScenarioCreditResponse> {
   try {
     const { data } = await http.get(`${V1}/scenario/credit`)
@@ -129,7 +119,6 @@ export async function getScenarioCredit(): Promise<ScenarioCreditResponse> {
   }
 }
 
-// ── Scenario Supply ──
 export async function getScenarioSupply(): Promise<ScenarioSupplyResponse> {
   try {
     const { data } = await http.get(`${V1}/scenario/supply`)
@@ -139,39 +128,52 @@ export async function getScenarioSupply(): Promise<ScenarioSupplyResponse> {
   }
 }
 
-// ── Fallback mock data ──
+const companyContext = {
+  company: "腾讯控股",
+  ticker: "Private",
+  fiscal_year: 2024,
+  headline: "基于腾讯控股公开资料、官方披露与媒体估算构建的风险监管样例",
+  key_metrics: {
+    "2024营收估算": "$155B+",
+    "估值区间": "$300B+",
+    "微信及WeChat MAU": "170M+",
+    "公司状态": "非上市",
+  },
+  data_source: "Tencent 官方资料、欧盟委员会公告、美国国会法案文本、Reuters/The Information 等公开报道",
+  disclaimer: "腾讯控股为非上市公司，财务与估值数据为公开媒体估算；风险敞口、PD/LGD 与供应中断概率为课堂演示模型参数。",
+}
 
 function fallbackRiskEvaluate(): RiskEvaluateResponse {
   return {
-    risk_score: 62.4,
-    trend: "↑",
+    risk_score: 68.2,
+    trend: "上升",
     probability_distribution: Array.from({ length: 31 }, (_, i) => ({
-      x: +(40 + i * 2).toFixed(1),
-      y: +Math.max(0, 100 - ((i - 15) ** 2) / 3).toFixed(2),
+      x: +(38 + i * 2).toFixed(1),
+      y: +Math.max(0, 100 - ((i - 16) ** 2) / 2.8).toFixed(2),
     })),
     var_table: [
-      { method: "蒙特卡洛模拟", confidence: "95%", value: 2.65 },
-      { method: "历史模拟法", confidence: "95%", value: 2.48 },
-      { method: "参数法", confidence: "95%", value: 2.31 },
-      { method: "蒙特卡洛模拟", confidence: "99%", value: 4.12 },
-      { method: "历史模拟法", confidence: "99%", value: 3.89 },
-      { method: "参数法", confidence: "99%", value: 3.55 },
+      { method: "监管压力测试", confidence: "95%", value: 3.18 },
+      { method: "蒙特卡洛模拟", confidence: "95%", value: 2.84 },
+      { method: "历史事件法", confidence: "95%", value: 2.42 },
+      { method: "监管压力测试", confidence: "99%", value: 4.88 },
+      { method: "蒙特卡洛模拟", confidence: "99%", value: 4.26 },
+      { method: "历史事件法", confidence: "99%", value: 3.71 },
     ],
     factor_contributions: [
-      { factor: "汇率", contribution: 42.5, description: "汇率波动对敞口价值的影响占主导地位" },
-      { factor: "信用", contribution: 32.1, description: "交易对手信用评级下调导致违约概率上升" },
-      { factor: "供应链", contribution: 25.4, description: "关键供应商交付延迟引发库存短缺风险" },
+      { factor: "监管合规", contribution: 45.8, description: "美国 CMC黑名单 法案、游戏版号 与数据本地化要求叠加，是当前最高权重因子。" },
+      { factor: "AI算力", contribution: 30.7, description: "大模型、推荐系统和内容安全模型依赖高性能 GPU 与云资源，供应与成本弹性不足。" },
+      { factor: "全球化经营", contribution: 23.5, description: "海外广告、Tencent FinTech 和多币种收入敞口带来汇率、政策与回款波动。" },
     ],
-    time_sensitivity_hours: 52.8,
+    time_sensitivity_hours: 48.0,
   }
 }
 
-function _buildGantt(prefix: string, tw: number) {
+function buildGantt(prefix: string, tw: number) {
   return [
-    { name: `${prefix}-审批`, start: 3, end: 6, milestone: "" },
-    { name: `${prefix}-签约`, start: 6, end: 10, milestone: "签约" },
-    { name: `${prefix}-执行`, start: 10, end: tw - 14, milestone: "" },
-    { name: `${prefix}-监控`, start: tw - 14, end: tw, milestone: "" },
+    { name: `${prefix}-评估`, start: 1, end: 3, milestone: "完成分级" },
+    { name: `${prefix}-审批`, start: 3, end: 7, milestone: "形成方案" },
+    { name: `${prefix}-执行`, start: 7, end: tw - 14, milestone: "" },
+    { name: `${prefix}-复盘`, start: tw - 14, end: tw, milestone: "PDCA复盘" },
   ]
 }
 
@@ -179,30 +181,33 @@ function fallbackStrategyOptimize(): StrategyOptimizeResponse {
   const tw = 90
   return {
     conservative: {
-      name: "保守方案", type: "conservative", cost: 1_640_000, residual_risk: 75_000,
-      hedge_ratio: 0.92, credit_limit: 560_000, safety_stock_days: 45,
-      description: "全面对冲汇率风险，严格信用额度管控，高安全库存水位。适合风险极度厌恶时期。",
-      gantt: _buildGantt("保守", tw),
+      name: "合规防御方案", type: "conservative", cost: 2_800_000, residual_risk: 95_000,
+      hedge_ratio: 0.90, credit_limit: 520_000, safety_stock_days: 45,
+      description: "优先压降监管尾部风险：美国与欧盟专项合规投入前置，AI 算力建立高冗余替代池，适合重大监管窗口前。",
+      gantt: buildGantt("合规防御", tw),
+      actions: ["建立美国 CMC黑名单 应急台账", "游戏版号 合规材料预审", "GPU/云资源双供应池锁定"],
     },
     balanced: {
-      name: "平衡方案", type: "balanced", cost: 1_160_000, residual_risk: 190_000,
-      hedge_ratio: 0.65, credit_limit: 840_000, safety_stock_days: 25,
-      description: "选择性对冲核心敞口，保持适中的信用额度和安全库存。性价比最优方案。",
-      gantt: _buildGantt("平衡", tw),
+      name: "平衡响应方案", type: "balanced", cost: 1_760_000, residual_risk: 180_000,
+      hedge_ratio: 0.68, credit_limit: 860_000, safety_stock_days: 28,
+      description: "兼顾合规确定性与业务连续性：优先覆盖高风险市场，同时保留广告、电商与 AI 产品增长弹性。",
+      gantt: buildGantt("平衡响应", tw),
+      actions: ["48小时监管事件复核", "高风险市场合规预算前置", "AI 算力供应切换演练"],
     },
     aggressive: {
-      name: "激进方案", type: "aggressive", cost: 640_000, residual_risk: 360_000,
-      hedge_ratio: 0.30, credit_limit: 1_300_000, safety_stock_days: 10,
-      description: "仅对冲极端尾部风险，最大化资金效率。适合市场平稳时期。",
-      gantt: _buildGantt("激进", tw),
+      name: "增长优先方案", type: "aggressive", cost: 780_000, residual_risk: 410_000,
+      hedge_ratio: 0.35, credit_limit: 1_360_000, safety_stock_days: 14,
+      description: "保留更高业务投入效率，仅对极端监管和算力断供风险做保护，适合风险窗口回落后使用。",
+      gantt: buildGantt("增长优先", tw),
+      actions: ["保留核心市场投放", "仅覆盖尾部监管事件", "低成本云资源弹性采购"],
     },
     scatter_data: [
-      { name: "保守方案", type: "conservative", cost: 1_640_000, residual_risk: 75_000 },
-      { name: "平衡方案", type: "balanced", cost: 1_160_000, residual_risk: 190_000 },
-      { name: "激进方案", type: "aggressive", cost: 640_000, residual_risk: 360_000 },
-      { name: "保守-变体A", type: "conservative", cost: 1_400_000, residual_risk: 90_000 },
-      { name: "平衡-变体A", type: "balanced", cost: 980_000, residual_risk: 210_000 },
-      { name: "激进-变体A", type: "aggressive", cost: 550_000, residual_risk: 380_000 },
+      { name: "合规防御方案", type: "conservative", cost: 2_800_000, residual_risk: 95_000 },
+      { name: "平衡响应方案", type: "balanced", cost: 1_760_000, residual_risk: 180_000 },
+      { name: "增长优先方案", type: "aggressive", cost: 780_000, residual_risk: 410_000 },
+      { name: "防御-轻量版", type: "conservative", cost: 2_200_000, residual_risk: 130_000 },
+      { name: "平衡-算力优先", type: "balanced", cost: 1_520_000, residual_risk: 220_000 },
+      { name: "增长-极简保护", type: "aggressive", cost: 620_000, residual_risk: 470_000 },
     ],
   }
 }
@@ -210,88 +215,107 @@ function fallbackStrategyOptimize(): StrategyOptimizeResponse {
 function fallbackKpi() {
   return {
     kpis: [
-      { name: "hedge_deviation_rate", actual: 0.042, target: 0.05, threshold: 0.10, unit: "%", status: "normal" },
-      { name: "default_trigger_rate", actual: 0.018, target: 0.01, threshold: 0.03, unit: "%", status: "warning" },
-      { name: "delivery_rate", actual: 0.962, target: 0.95, threshold: 0.90, unit: "%", status: "normal" },
-      { name: "var_breach_count", actual: 1, target: 0, threshold: 5, unit: "次", status: "normal" },
-      { name: "liquidity_coverage", actual: 1.45, target: 1.5, threshold: 1.0, unit: "倍", status: "normal" },
+      { name: "regulatory_response_sla", actual: 0.82, target: 0.90, threshold: 0.70, unit: "%", status: "warning" },
+      { name: "content_safety_intercept_rate", actual: 0.998, target: 0.999, threshold: 0.995, unit: "%", status: "normal" },
+      { name: "ai_compute_backup_coverage", actual: 0.64, target: 0.75, threshold: 0.50, unit: "%", status: "warning" },
+      { name: "ad_receivable_overdue_rate", actual: 0.021, target: 0.015, threshold: 0.035, unit: "%", status: "warning" },
+      { name: "fx_hedge_coverage", actual: 0.58, target: 0.65, threshold: 0.40, unit: "%", status: "normal" },
     ],
     period: "T+15",
   }
 }
 
 function fallbackEvents(): { events: RiskEventItem[] } {
-  const types = ["汇率波动", "信用违约", "供应链中断", "政策变更", "自然灾害", "地缘冲突"]
-  const severities = ["low", "medium", "high", "critical"]
+  const types = ["监管审查", "数据合规", "AI芯片限制", "汇率波动", "内容安全", "跨境电商政策"]
+  const severities = ["medium", "high", "critical", "medium"]
   const regions = [
-    { r: "亚太区", lat: 35, lng: 105 },
-    { r: "欧洲区", lat: 50, lng: 10 },
-    { r: "北美区", lat: 40, lng: -100 },
-    { r: "中东区", lat: 30, lng: 45 },
-    { r: "南美区", lat: -15, lng: -55 },
+    { r: "美国", lat: 38, lng: -97 },
+    { r: "欧盟", lat: 50, lng: 10 },
+    { r: "中国", lat: 35, lng: 105 },
+    { r: "东南亚", lat: 10, lng: 106 },
+    { r: "巴西", lat: -15, lng: -55 },
   ]
-  const events: RiskEventItem[] = Array.from({ length: 20 }, (_, i) => {
-    const reg = regions[i % regions.length]
-    return {
-      id: `evt-${i}`,
-      type: types[i % types.length],
-      severity: severities[i % severities.length],
-      region: reg.r,
-      lat: reg.lat + (Math.random() - 0.5) * 16,
-      lng: reg.lng + (Math.random() - 0.5) * 16,
-      description: `${reg.r}发生${types[i % types.length]}事件`,
-      timestamp: new Date(Date.now() - i * 3600000 * 7).toISOString(),
-    }
-  })
-  return { events }
+  return {
+    events: Array.from({ length: 20 }, (_, i) => {
+      const reg = regions[i % regions.length]
+      const type = types[i % types.length]
+      return {
+        id: `bd-evt-${i}`,
+        type,
+        severity: severities[i % severities.length],
+        region: reg.r,
+        lat: reg.lat + (Math.random() - 0.5) * 10,
+        lng: reg.lng + (Math.random() - 0.5) * 10,
+        description: `${reg.r}${type}信号触发，已进入腾讯控股风险监管台账。`,
+        timestamp: new Date(Date.now() - i * 3600000 * 6).toISOString(),
+      }
+    }),
+  }
 }
 
 function fallbackFx(): ScenarioFxResponse {
   const p = Array.from({ length: 90 }, (_, i) => i + 1)
-  const usdU = p.map(i => 1_000_000 + (i - 45) * 5000 + (Math.random() - 0.5) * 60000)
-  const usdH = p.map(i => 1_000_000 + (i - 45) * 1200 + (Math.random() - 0.5) * 16000)
-  const eurU = p.map(i => 600_000 + (i - 45) * 3000 + (Math.random() - 0.5) * 36000)
-  const eurH = p.map(i => 600_000 + (i - 45) * 800 + (Math.random() - 0.5) * 10000)
-  const jpyU = p.map(i => 400_000 + (i - 45) * 2000 + (Math.random() - 0.5) * 24000)
-  const jpyH = p.map(i => 400_000 + (i - 45) * 500 + (Math.random() - 0.5) * 8000)
+  const series = (base: number, drift: number, noise: number) =>
+    p.map((i) => base + (i - 45) * drift + (Math.random() - 0.5) * noise)
+
   return {
     exposures: [
-      { currency: "USD", exposure: 2_500_000, hedge_ratio: 0.68, hedge_cost: 45_000,
-        period_30d: 1_200_000, period_60d: 800_000, period_90d: 500_000,
-        unhedged_pnl: usdU, hedged_pnl: usdH },
-      { currency: "EUR", exposure: 1_500_000, hedge_ratio: 0.55, hedge_cost: 32_000,
-        period_30d: 700_000, period_60d: 500_000, period_90d: 300_000,
-        unhedged_pnl: eurU, hedged_pnl: eurH },
-      { currency: "JPY", exposure: 1_000_000, hedge_ratio: 0.42, hedge_cost: 18_000,
-        period_30d: 500_000, period_60d: 300_000, period_90d: 200_000,
-        unhedged_pnl: jpyU, hedged_pnl: jpyH },
+      { currency: "USD", exposure: 280_000_000_000, hedge_ratio: 0.58, hedge_cost: 1_820_000_000,
+        period_30d: 132_000_000_000, period_60d: 92_000_000_000, period_90d: 56_000_000_000,
+        unhedged_pnl: series(0, 18_000_000, 680_000_000), hedged_pnl: series(0, 5_000_000, 180_000_000), historical_vol: 7.2, implied_vol: 8.8, vol_spread_pct: 22 },
+      { currency: "EUR", exposure: 92_000_000_000, hedge_ratio: 0.46, hedge_cost: 690_000_000,
+        period_30d: 41_000_000_000, period_60d: 32_000_000_000, period_90d: 19_000_000_000,
+        unhedged_pnl: series(0, 9_000_000, 260_000_000), hedged_pnl: series(0, 3_000_000, 90_000_000), historical_vol: 6.4, implied_vol: 7.6, vol_spread_pct: 19 },
+      { currency: "GBP/JPY/SEA", exposure: 66_000_000_000, hedge_ratio: 0.38, hedge_cost: 420_000_000,
+        period_30d: 29_000_000_000, period_60d: 22_000_000_000, period_90d: 15_000_000_000,
+        unhedged_pnl: series(0, 6_000_000, 220_000_000), hedged_pnl: series(0, 2_000_000, 80_000_000), historical_vol: 9.1, implied_vol: 11.4, vol_spread_pct: 25 },
     ],
-    total_exposure: 5_000_000,
-    coverage_ratio: 0.58,
+    total_exposure: 438_000_000_000,
+    coverage_ratio: 0.52,
     alerts: [
-      "USD敞口覆盖率低于目标值70%，建议追加远期合约",
-      "JPY波动率在过去30日上升22%，关注套息交易平仓风险",
-      "EUR利率决议将在7日后公布，建议提前锁定部分敞口",
+      "美国 CMC黑名单 监管窗口未完全落地，美元收入与合规成本需联动压力测试。",
+      "游戏版号 调查提升内容治理与算法透明合规投入，建议设置专项预算阈值。",
+      "东南亚与拉美 Tencent FinTech 增速快，但本币波动和平台政策变化需要周度复核。",
     ],
+    natural_hedge_scores: {
+      USD: { match_score: 58, net_receivable: 280_000_000_000, net_payable: 96_000_000_000, recommendation: "广告收入与云资源采购存在部分自然对冲，但仍需远期覆盖核心敞口。" },
+      EUR: { match_score: 46, net_receivable: 92_000_000_000, net_payable: 28_000_000_000, recommendation: "欧盟合规支出能抵消部分收入敞口，DSA 罚款尾部风险需单独处理。" },
+      "SEA": { match_score: 39, net_receivable: 38_000_000_000, net_payable: 12_000_000_000, recommendation: "Tencent FinTech 回款与补贴周期错配，建议提高本币监控频率。" },
+    },
+    assumptions: [
+      "币种敞口为公开业务规模基础上的演示估算。",
+      "对冲成本按广告、云资源和电商结算现金流综合估算。",
+      "监管事件造成的现金流波动通过压力测试折算至 VaR。",
+    ],
+    company_context: companyContext,
   }
 }
 
 function fallbackCredit(): ScenarioCreditResponse {
   return {
     pd_lgd_table: [
-      { borrower: "企业A (制造业)", pd: 0.012, lgd: 0.40, ead: 5_000_000, raroc: 0.18, rating: "A" },
-      { borrower: "企业B (贸易)", pd: 0.025, lgd: 0.45, ead: 3_500_000, raroc: 0.14, rating: "BBB+" },
-      { borrower: "企业C (科技)", pd: 0.008, lgd: 0.35, ead: 8_000_000, raroc: 0.22, rating: "AA-" },
-      { borrower: "企业D (地产)", pd: 0.055, lgd: 0.55, ead: 2_000_000, raroc: 0.08, rating: "BB" },
-      { borrower: "企业E (能源)", pd: 0.018, lgd: 0.42, ead: 4_500_000, raroc: 0.16, rating: "A-" },
-      { borrower: "企业F (消费)", pd: 0.032, lgd: 0.48, ead: 2_800_000, raroc: 0.11, rating: "BBB" },
+      { borrower: "大型品牌广告主", pd: 0.018, lgd: 0.22, ead: 12_000_000_000, raroc: 0.24, rating: "AA-", sentiment: 2, cox_pd: 0.020 },
+      { borrower: "中小广告主长尾池", pd: 0.075, lgd: 0.36, ead: 8_500_000_000, raroc: 0.13, rating: "BBB", sentiment: -1, cox_pd: 0.092 },
+      { borrower: "Tencent FinTech 头部商家", pd: 0.041, lgd: 0.30, ead: 6_800_000_000, raroc: 0.18, rating: "A-", sentiment: 1, cox_pd: 0.048 },
+      { borrower: "跨境商家长尾池", pd: 0.096, lgd: 0.42, ead: 4_600_000_000, raroc: 0.10, rating: "BB+", sentiment: -2, cox_pd: 0.118 },
+      { borrower: "企业服务客户", pd: 0.024, lgd: 0.28, ead: 3_200_000_000, raroc: 0.20, rating: "A", sentiment: 1, cox_pd: 0.027 },
+      { borrower: "本地生活商户池", pd: 0.061, lgd: 0.34, ead: 3_000_000_000, raroc: 0.15, rating: "BBB+", sentiment: 0, cox_pd: 0.067 },
     ],
-    portfolio_npl_forecast: Array.from({ length: 12 }, (_, i) => +(0.018 + i * 0.0002 + (Math.random() - 0.5) * 0.004).toFixed(4)),
+    portfolio_npl_forecast: Array.from({ length: 12 }, (_, i) => +(0.018 + i * 0.0011 + (Math.random() - 0.5) * 0.003).toFixed(4)),
     optimization_suggestions: [
-      "企业D信用评级跌破投资级，建议降低授信额度20%",
-      "企业C RAROC最高(22%)，可适度增加敞口",
-      "整体贷款组合集中度偏高，建议增加行业分散度",
+      "跨境商家长尾池 PD 上行，建议将高投诉类目结算周期缩短并提高保证金。",
+      "大型品牌广告主 RAROC 最高，可保留较高额度并绑定季度回款监控。",
+      "Tencent FinTech 头部商家风险可控，但需按国家政策变化动态调整信用额度。",
     ],
+    sentiment_triggers: [
+      "广告预算削减新闻热度上升时，自动上调中小广告主 PD。",
+      "跨境电商政策变更触发商家保证金复核。",
+    ],
+    assumptions: [
+      "PD/LGD 为课堂演示模型参数，按广告主、商家和企业服务客户类型估算。",
+      "舆情触发项通过关键词热度影响 Cox 调整 PD。",
+    ],
+    company_context: companyContext,
   }
 }
 
@@ -299,19 +323,29 @@ function fallbackSupply(): ScenarioSupplyResponse {
   const days = Array.from({ length: 60 }, (_, i) => i + 1)
   return {
     suppliers: [
-      { id: "S001", name: "芯片供应商A", disruption_prob: 0.08, lead_time_days: 30, safety_stock_recommendation: 5000, is_alternative: false },
-      { id: "S002", name: "芯片供应商A-备选", disruption_prob: 0.15, lead_time_days: 45, safety_stock_recommendation: 8000, is_alternative: true },
-      { id: "S003", name: "钢材供应商B", disruption_prob: 0.05, lead_time_days: 15, safety_stock_recommendation: 3000, is_alternative: false },
-      { id: "S004", name: "钢材供应商B-备选", disruption_prob: 0.09, lead_time_days: 20, safety_stock_recommendation: 4000, is_alternative: true },
-      { id: "S005", name: "物流服务商C", disruption_prob: 0.18, lead_time_days: 7, safety_stock_recommendation: 2000, is_alternative: false },
-      { id: "S006", name: "物流服务商C-备选", disruption_prob: 0.22, lead_time_days: 10, safety_stock_recommendation: 3500, is_alternative: true },
+      { id: "S001", name: "NVIDIA GPU 算力", category: "AI芯片", disruption_prob: 0.22, lead_time_days: 90, safety_stock_recommendation: 3, is_alternative: false, geo_region: "美国/全球", geo_score: 32, switching_cost: 520_000_000, composite_score: 58 },
+      { id: "S002", name: "国产 AI 芯片替代池", category: "AI芯片-备选", disruption_prob: 0.14, lead_time_days: 60, safety_stock_recommendation: 2, is_alternative: true, geo_region: "中国", geo_score: 78, switching_cost: 360_000_000, composite_score: 66 },
+      { id: "S003", name: "自建数据中心", category: "基础设施", disruption_prob: 0.06, lead_time_days: 30, safety_stock_recommendation: 4, is_alternative: false, geo_region: "中国/东南亚", geo_score: 84, switching_cost: 180_000_000, composite_score: 82 },
+      { id: "S004", name: "全球云与 CDN", category: "云资源", disruption_prob: 0.10, lead_time_days: 14, safety_stock_recommendation: 3, is_alternative: false, geo_region: "全球", geo_score: 76, switching_cost: 120_000_000, composite_score: 74 },
+      { id: "S005", name: "内容审核运营团队", category: "合规运营", disruption_prob: 0.08, lead_time_days: 7, safety_stock_recommendation: 5, is_alternative: false, geo_region: "全球", geo_score: 80, switching_cost: 60_000_000, composite_score: 79 },
+      { id: "S006", name: "第三方安全审计", category: "合规服务-备选", disruption_prob: 0.12, lead_time_days: 21, safety_stock_recommendation: 2, is_alternative: true, geo_region: "美国/欧盟", geo_score: 62, switching_cost: 80_000_000, composite_score: 69 },
     ],
-    disruption_forecast: days.map(d => ({ day: d, probability: +(0.05 + d * 0.002 * (0.8 + Math.random() * 0.4)).toFixed(3) })),
-    material_price_index: days.map(d => ({ day: d, index: +(100 + d * 0.3 + (Math.random() - 0.5) * 3).toFixed(1) })),
+    disruption_forecast: days.map((d) => ({ day: d, probability: +(0.08 + d * 0.0022 + (Math.random() - 0.5) * 0.018).toFixed(3) })),
+    material_price_index: days.map((d) => ({ day: d, index: +(100 + d * 0.42 + Math.sin(d / 6) * 2.8).toFixed(1) })),
     suggestions: [
-      "芯片供应商A备选方案建议在15天内完成资质审核",
-      "物流服务商C中断概率上升至18%，建议增加备选签约",
-      "原材料价格指数呈上升趋势，建议提前锁定30天用量",
+      "NVIDIA GPU 供应与出口管制相关，建议建立国产芯片、海外云资源和自建数据中心三层替代池。",
+      "游戏版号 与美国数据安全审查需要第三方审计与内容治理团队提前排班。",
+      "混元大模型推理高峰期需预留推理算力冗余，避免监管事件与流量峰值叠加。",
     ],
+    cascade_impacts: {
+      S001: { primary_disruption: 22, secondary_cascade_prob: 36, affected_alternative: "国产 AI 芯片替代池", estimated_impact_days: 21 },
+      S004: { primary_disruption: 10, secondary_cascade_prob: 18, affected_alternative: "自建数据中心", estimated_impact_days: 9 },
+      S005: { primary_disruption: 8, secondary_cascade_prob: 15, affected_alternative: "第三方安全审计", estimated_impact_days: 6 },
+    },
+    assumptions: [
+      "供应链在本案例中指数字基础设施、AI 算力、云资源和合规运营，不是制造业原材料。",
+      "中断概率为演示参数，结合监管、出口管制、云资源与内容治理压力设定。",
+    ],
+    company_context: companyContext,
   }
 }

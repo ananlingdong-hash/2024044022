@@ -39,9 +39,9 @@ export function ProfileCenterPage() {
   ]
 
   return (
-    <section className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
       {/* Stats row */}
-      <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
         {stats.map((s) => (
           <Card key={s.label} variant="flat" padding="default">
             <div className="flex items-center gap-3">
@@ -57,7 +57,7 @@ export function ProfileCenterPage() {
         ))}
       </div>
 
-      <Card className="lg:col-span-8" padding="lg">
+      <Card className="md:col-span-2" padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 ring-1 ring-indigo-300/15">
             <Key size={13} className="text-indigo-300/80" />
@@ -82,7 +82,7 @@ export function ProfileCenterPage() {
         </div>
       </Card>
 
-      <Card className="lg:col-span-4" variant="elevated" padding="lg">
+      <Card className="md:col-span-1" variant="elevated" padding="lg">
         <div className="flex items-center gap-2 mb-4">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-300/15">
             <Shield size={13} className="text-emerald-300/80" />

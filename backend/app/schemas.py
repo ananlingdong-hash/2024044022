@@ -128,6 +128,9 @@ class RiskEvaluateResponse(BaseModel):
     var_table: list[VarEntry]
     factor_contributions: list[FactorContribution]
     time_sensitivity_hours: float = 72.0
+    elapsed_ms: float | None = None
+    assumptions: dict | None = None
+    var_table_detailed: list[dict] | None = None
 
 
 class StrategyOptimizeRequest(BaseModel):
@@ -156,10 +159,11 @@ class StrategyOption(BaseModel):
 
 
 class StrategyOptimizeResponse(BaseModel):
-    conservative: StrategyOption
-    balanced: StrategyOption
-    aggressive: StrategyOption
+    conservative: dict
+    balanced: dict
+    aggressive: dict
     scatter_data: list[dict]
+    optimization_meta: dict | None = None
 
 
 class PdcaExecuteRequest(BaseModel):
@@ -189,6 +193,9 @@ class FeedbackResponse(BaseModel):
     suggestions: str
     recorded_at: datetime
     optimization_tips: list[str] = Field(default_factory=list)
+    assumptions: list[str] | None = None
+    sliding_window_size: int | None = None
+    deviation_trend: str | None = None
 
 
 class RiskReportResponse(BaseModel):
@@ -212,6 +219,8 @@ class MonitorKpiItem(BaseModel):
 class MonitorKpiResponse(BaseModel):
     kpis: list[MonitorKpiItem]
     period: str
+    alert_logic: str | None = None
+    company_context: dict | None = None
 
 
 class RiskEventItem(BaseModel):
@@ -242,10 +251,13 @@ class FxExposureItem(BaseModel):
 
 
 class ScenarioFxResponse(BaseModel):
-    exposures: list[FxExposureItem]
+    exposures: list[dict]
     total_exposure: float
     coverage_ratio: float
     alerts: list[str]
+    natural_hedge_scores: dict | None = None
+    assumptions: list[str] | None = None
+    company_context: dict | None = None
 
 
 class CreditPdLgdItem(BaseModel):
@@ -258,9 +270,12 @@ class CreditPdLgdItem(BaseModel):
 
 
 class ScenarioCreditResponse(BaseModel):
-    pd_lgd_table: list[CreditPdLgdItem]
+    pd_lgd_table: list[dict]
     portfolio_npl_forecast: list[float]
     optimization_suggestions: list[str]
+    sentiment_triggers: list[str] | None = None
+    assumptions: list[str] | None = None
+    company_context: dict | None = None
 
 
 class SupplierItem(BaseModel):
@@ -273,10 +288,13 @@ class SupplierItem(BaseModel):
 
 
 class ScenarioSupplyResponse(BaseModel):
-    suppliers: list[SupplierItem]
+    suppliers: list[dict]
     disruption_forecast: list[dict]
     material_price_index: list[dict]
     suggestions: list[str]
+    cascade_impacts: dict | None = None
+    assumptions: list[str] | None = None
+    company_context: dict | None = None
 
 
 class LoginV1Request(BaseModel):

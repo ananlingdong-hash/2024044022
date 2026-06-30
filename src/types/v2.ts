@@ -11,7 +11,7 @@ export type RiskPoint = {
 }
 
 export type RiskBreakdown = {
-  name: "汇率风险" | "信用风险" | "供应链风险"
+  name: "监管合规风险" | "AI算力风险" | "全球化经营风险"
   value: number
 }
 
@@ -24,7 +24,7 @@ export type StrategyRadarMetric = {
 
 export type SupplyNode = {
   id: string
-  category: "核心企业" | "一级供应商" | "二级供应商"
+  category: "核心企业" | "一级风险节点" | "二级保障节点"
   risk: number
 }
 

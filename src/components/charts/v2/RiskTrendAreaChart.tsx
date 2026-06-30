@@ -4,6 +4,9 @@ import ReactECharts from "echarts-for-react"
 import { Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { RiskPoint } from "@/types/v2"
+import { CHART_COLORS } from "@/lib/chart-theme"
+
+const { accent, chrome } = CHART_COLORS
 
 export function RiskTrendAreaChart({ points }: { points: RiskPoint[] }) {
   const ref = useRef<ReactECharts>(null)
@@ -11,24 +14,24 @@ export function RiskTrendAreaChart({ points }: { points: RiskPoint[] }) {
     backgroundColor: "transparent",
     tooltip: {
       trigger: "axis",
-      borderColor: "rgba(255,255,255,0.10)",
-      backgroundColor: "rgba(20,20,35,0.96)",
-      textStyle: { fontSize: 11, color: "#e4e4e7" },
+      borderColor: chrome.tooltipBorder,
+      backgroundColor: chrome.tooltipBg,
+      textStyle: { fontSize: 11, color: chrome.tooltipText },
     },
     grid: { left: 32, right: 24, top: 20, bottom: 28, containLabel: false },
     xAxis: {
       type: "category",
       data: points.map((p) => p.ts),
-      axisLabel: { color: "#71717a", fontSize: 10, interval: Math.max(1, Math.floor(points.length / 8)) },
-      axisLine: { lineStyle: { color: "rgba(255,255,255,0.08)" } },
+      axisLabel: { color: chrome.textMuted, fontSize: 10, interval: Math.max(1, Math.floor(points.length / 8)) },
+      axisLine: { lineStyle: { color: chrome.border } },
       axisTick: { show: false },
     },
     yAxis: {
       type: "value",
       min: 0,
       max: 100,
-      axisLabel: { color: "#71717a", fontSize: 10 },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)", type: "dashed" } },
+      axisLabel: { color: chrome.textMuted, fontSize: 10 },
+      splitLine: { lineStyle: { color: chrome.gridLight, type: "dashed" } },
       axisLine: { show: false },
     },
     series: [
@@ -37,7 +40,7 @@ export function RiskTrendAreaChart({ points }: { points: RiskPoint[] }) {
         smooth: 0.4,
         showSymbol: false,
         data: points.map((p) => p.value),
-        lineStyle: { color: "#818cf8", width: 2.5 },
+        lineStyle: { color: accent.indigo, width: 2.5 },
         areaStyle: {
           color: {
             type: "linear",

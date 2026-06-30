@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 
-type SkeletonVariant = "default" | "text" | "heading" | "circle" | "card" | "stat"
+type SkeletonVariant = "default" | "text" | "heading" | "circle" | "card" | "stat" | "cyber"
 
 interface SkeletonProps {
   className?: string
@@ -15,6 +15,7 @@ const variantClasses: Record<SkeletonVariant, string> = {
   circle: "skeleton-v2 skeleton-circle",
   card: "skeleton-v2 skeleton-card",
   stat: "skeleton-v2 rounded-lg h-[80px]",
+  cyber: "skeleton-cyber rounded-xl",
 }
 
 export function Skeleton({ className, variant = "default", lines }: SkeletonProps) {
@@ -24,7 +25,7 @@ export function Skeleton({ className, variant = "default", lines }: SkeletonProp
         {Array.from({ length: lines }).map((_, i) => (
           <div
             key={i}
-            className="skeleton-v2 rounded"
+            className="skeleton-cyber rounded"
             style={{ height: 13, width: i === lines - 1 ? "60%" : "100%" }}
           />
         ))}

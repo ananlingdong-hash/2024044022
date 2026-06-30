@@ -22,19 +22,19 @@ const REPORT_ETA_SECONDS = 90
 const sampleReport: SentimentReport = {
   id: "20260507-1430",
   generatedAt: "2026-05-07 14:30",
-  symbols: ["AAPL", "NVDA", "茅台", "宁德时代"],
+  symbols: ["Tencent", "Tencent-Ads", "Tencent-Cloud", "Tencent-Games"],
   marketSentiment: 62,
   summary: "科技板块风险偏好抬升，机构净流入集中在高景气成长股，白酒板块情绪修复偏慢。",
   stockScores: [
-    { symbol: "AAPL", score: 78 },
-    { symbol: "NVDA", score: 85 },
-    { symbol: "茅台", score: 65 },
-    { symbol: "宁德时代", score: 72 },
+    { symbol: "Tencent", score: 68 },
+    { symbol: "Tencent-Ads", score: 74 },
+    { symbol: "Tencent-Cloud", score: 71 },
+    { symbol: "Tencent-Games", score: 66 },
   ],
-  suggestion: "关注NVDA（技术突破 + 机构增持），等待茅台情绪修复确认。",
+  suggestion: "关注 CMC黑名单监管、游戏版号 调查与 AI 算力成本上行，建议启动平衡响应方案。",
   reportTitle: "舆情分析报告 #20260507-1430",
-  eventHighlights: ["NVDA: AI服务器订单预期上修，隔夜成交量显著放大。", "茅台: 渠道反馈旺季动销平稳，估值分歧仍存。"],
-  recommendationBullets: ["优先跟踪NVDA趋势延续。", "若情绪指数回落至50以下，降低仓位。"],
+  eventHighlights: ["微信: 美国监管窗口仍未完全消除，需保持合规预案。", "游戏版号: 算法透明、未成年人保护和内容治理压力持续。"],
+  recommendationBullets: ["优先跟踪 CMC黑名单监管事件进展。", "若 AI 算力成本继续上行，切换至算力替代池方案。"],
   reportBody:
     "Agent智能风险应对决策支持报告。执行摘要：已完成智能评估、策略优化和PDCA闭环设计。智能评估覆盖蒙特卡洛、VaR与行业对标。策略优化提供保守、平衡、激进三套组合。实际应用场景覆盖汇率风险、信用风险、供应链风险。",
 }
@@ -129,12 +129,15 @@ export function SentimentRadarPage() {
     return () => window.clearTimeout(timer)
   }, [])
 
+  const [universeError, setUniverseError] = useState(false)
+  const [watchlistError, setWatchlistError] = useState(false)
+
   useEffect(() => {
-    fetchUniverse().then(setUniverse).catch(() => undefined)
+    fetchUniverse().then(setUniverse).catch(() => setUniverseError(true))
     fetchUserWatchlist().then((result) => {
       setSelectedSymbols(result.symbols)
       setReport((prev) => ({ ...prev, symbols: result.symbols }))
-    }).catch(() => undefined)
+    }).catch(() => setWatchlistError(true))
   }, [])
 
   useEffect(() => {
@@ -280,15 +283,15 @@ export function SentimentRadarPage() {
     xAxis: { show: false, data: Array.from({ length: 50 }, (_, i) => i) },
     yAxis: { show: true, axisLabel: { color: "#71717a", fontSize: 9 }, splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)" } } },
     series: [
-      { name: "AAPL", type: "line", data: priceData.aapl, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#818cf8" } },
-      { name: "NVDA", type: "line", data: priceData.nvda, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#34d399" } },
-      { name: "茅台", type: "line", data: priceData.mt, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#fbbf24" } },
-      { name: "宁德", type: "line", data: priceData.ndsd, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#38bdf8" } },
+      { name: "Tencent", type: "line", data: priceData.aapl, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#818cf8" } },
+      { name: "Tencent-Ads", type: "line", data: priceData.nvda, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#34d399" } },
+      { name: "Tencent-Cloud", type: "line", data: priceData.mt, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#fbbf24" } },
+      { name: "Tencent-Games", type: "line", data: priceData.ndsd, smooth: true, showSymbol: false, lineStyle: { width: 1.2, color: "#38bdf8" } },
     ],
   }), [priceData])
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6 max-w-6xl mx-auto">
       {/* Hero banner with generate CTA */}
       <Card variant="elevated" padding="lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -304,7 +307,7 @@ export function SentimentRadarPage() {
           <div className="flex items-center gap-3">
             {reportPhase === "thinking" ? (
               <div className="flex items-center gap-2 rounded-lg border border-indigo-300/25 bg-indigo-500/10 px-4 py-2 text-xs text-indigo-100">
-                <span>生成中 {etaSeconds}s</span>
+                <span>AI 分析中</span>
                 <span className="flex items-center gap-1"><span className="thinking-dot" /><span className="thinking-dot" /><span className="thinking-dot" /></span>
               </div>
             ) : null}
@@ -318,26 +321,47 @@ export function SentimentRadarPage() {
         {taskHint ? <p className="mt-2 text-[11px] text-[var(--brand)]">{taskHint}</p> : null}
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Main report area */}
-        <Card className="xl:col-span-8" padding="lg">
+        <Card padding="lg">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-[190px_1fr]">
-            {/* Gauge + sentiment */}
-            <div className="flex flex-col items-center justify-center rounded-xl border border-white/[0.08] bg-[#16162a] p-4">
-              <div className="relative flex h-32 w-32 items-center justify-center">
+            {/* Gauge + sentiment — CSS radar globe */}
+            <div className="flex flex-col items-center justify-center rounded-xl border border-white/[0.08] bg-[#0d0d1a] p-4 relative overflow-hidden">
+              {/* Radar background rings */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-15 pointer-events-none">
+                <div className="rounded-full border border-[rgba(165,153,240,0.3)]" style={{ width: 180, height: 180, animation: "radar-pulse 3s ease-out infinite" }} />
+                <div className="absolute rounded-full border border-[rgba(165,153,240,0.2)]" style={{ width: 180, height: 180, animation: "radar-pulse 3s ease-out 0.6s infinite" }} />
+                <div className="absolute rounded-full border border-[rgba(56,189,248,0.15)]" style={{ width: 180, height: 180, animation: "radar-pulse 3s ease-out 1.2s infinite" }} />
+              </div>
+              {/* Scan line */}
+              <div className="absolute inset-0 pointer-events-none" style={{ background: "conic-gradient(from 0deg at 50% 50%, transparent 0deg, rgba(165,153,240,0.04) 3deg, transparent 10deg)", animation: "radar-spin 6s linear infinite" }} />
+              <div className="relative flex h-32 w-32 items-center justify-center z-10">
                 <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
-                  <circle cx="60" cy="60" r="46" stroke="rgba(255,255,255,0.08)" strokeWidth="8" fill="none" />
+                  <defs>
+                    <filter id="glow-ring">
+                      <feGaussianBlur stdDeviation="2" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                  </defs>
+                  <circle cx="60" cy="60" r="46" stroke="rgba(255,255,255,0.06)" strokeWidth="8" fill="none" />
                   <circle cx="60" cy="60" r="46" stroke={gaugeColor} strokeWidth="8" fill="none" strokeLinecap="round"
                     strokeDasharray={`${(report.marketSentiment / 100) * 289} 289`}
+                    filter="url(#glow-ring)"
                     style={{ transition: "stroke-dasharray 0.8s ease, stroke 0.8s ease" }} />
                 </svg>
                 <div className="absolute text-center">
-                  <p className={`mono-metric text-3xl font-semibold ${sentimentColor}`}>{report.marketSentiment}</p>
-                  <p className="text-[10px] text-[var(--text-muted)]">/100</p>
+                  <p className={`mono-metric text-4xl font-bold tracking-tighter ${sentimentColor}`}
+                    style={{ filter: `drop-shadow(0 0 12px ${gaugeColor}66)` }}
+                  >{report.marketSentiment}</p>
+                  <p className="text-[9px] text-[var(--text-muted)] tracking-widest uppercase mt-0.5">sentiment</p>
                 </div>
               </div>
-              <p className="text-[11px] text-[var(--text-muted)] mt-2">市场情绪指数</p>
-              <Badge variant={report.marketSentiment >= 70 ? "success" : report.marketSentiment >= 45 ? "warning" : "danger"} size="sm" className="mt-1">
+              <div className="relative z-10 flex items-center gap-1.5 mt-2">
+                <span className="h-1 w-1 rounded-full" style={{ background: gaugeColor, boxShadow: `0 0 6px ${gaugeColor}` }} />
+                <p className="text-[11px] text-[var(--text-secondary)] font-medium">市场情绪指数</p>
+                <span className="h-1 w-1 rounded-full" style={{ background: gaugeColor, boxShadow: `0 0 6px ${gaugeColor}` }} />
+              </div>
+              <Badge variant={report.marketSentiment >= 70 ? "success" : report.marketSentiment >= 45 ? "warning" : "danger"} size="sm" className="mt-1 relative z-10">
                 {report.marketSentiment >= 70 ? "偏乐观" : report.marketSentiment >= 45 ? "中性" : "偏悲观"}
               </Badge>
             </div>
@@ -394,7 +418,7 @@ export function SentimentRadarPage() {
         </Card>
 
         {/* Side: charts + controls */}
-        <div className="xl:col-span-4 space-y-4">
+        <div className="space-y-4">
           {/* Multi-stock comparison chart */}
           <Card padding="default">
             <div className="flex items-center gap-2 mb-3">
@@ -415,18 +439,29 @@ export function SentimentRadarPage() {
               <h3 className="text-sm font-semibold tracking-[-0.01em]">个股舆情评分</h3>
             </div>
             <div className="space-y-3">
-              {report.stockScores.map((item) => {
+              {report.stockScores.map((item, i) => {
+                const barColor = item.score >= 75 ? "bg-gradient-to-r from-emerald-500/80 to-emerald-400/40" : item.score >= 60 ? "bg-gradient-to-r from-amber-400/80 to-amber-300/40" : "bg-gradient-to-r from-rose-500/80 to-rose-400/40"
+                const glowColor = item.score >= 75 ? "#34d399" : item.score >= 60 ? "#fbbf24" : "#f87171"
                 return (
-                  <div key={item.symbol} className="space-y-1">
+                  <div key={item.symbol} className="space-y-1 group">
                     <div className="flex items-center justify-between">
-                      <span className="mono-metric text-[11px] font-medium">{item.symbol}</span>
+                      <span className="mono-metric text-[11px] font-medium group-hover:text-white transition-colors">{item.symbol}</span>
                       <span className={`mono-metric text-xs font-semibold ${item.score >= 75 ? "text-emerald-300" : item.score >= 60 ? "text-amber-300" : "text-rose-300"}`}>
                         {item.score}分
                       </span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                      <div className={`h-full rounded-full transition-all duration-700 ${item.score >= 75 ? "bg-emerald-400/60" : item.score >= 60 ? "bg-amber-300/60" : "bg-rose-400/60"}`}
-                        style={{ width: `${item.score}%` }} />
+                    <div className="h-2 rounded-full bg-white/[0.04] overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-white/[0.06] via-white/[0.12] to-white/[0.06]"
+                        style={{
+                          width: `${item.score}%`,
+                          backgroundSize: "200% 100%",
+                          animation: `bar-shimmer 2.5s ease-in-out ${i * 0.2}s infinite`,
+                          transition: "width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                          boxShadow: `0 0 8px ${glowColor}33, inset 0 1px 0 rgba(255,255,255,0.06)`,
+                          borderRight: `2px solid ${glowColor}66`,
+                        }}
+                      />
                     </div>
                   </div>
                 )
@@ -481,7 +516,7 @@ export function SentimentRadarPage() {
       </div>
 
       {/* Bottom row: scheduler + watchlist */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card padding="default">
           <div className="flex items-center gap-2 mb-3">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/10 ring-1 ring-amber-300/15">

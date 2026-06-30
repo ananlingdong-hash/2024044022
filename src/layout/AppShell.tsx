@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { NavLink, Outlet, useLocation } from "react-router-dom"
-import { Bell, Bot, ChevronLeft, ChevronRight, Clock3, FileText, LayoutDashboard, MessageSquare, Radio, Search, Settings, ShieldAlert, TrendingUp, Zap } from "lucide-react"
+import { Bell, Bot, ChevronLeft, ChevronRight, Clock3, Compass, FileText, LayoutDashboard, MessageSquare, Radio, Search, Settings, ShieldAlert, TrendingUp, Zap, Globe, GitBranch, RotateCcw } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
 import { Button } from "@/components/ui/button"
@@ -16,19 +16,25 @@ import { KeyboardShortcutsPanel } from "@/components/ui/keyboard-shortcuts-panel
 import { useEffect, useState } from "react"
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, shortcut: "1" },
-  { to: "/risk", label: "风险详情", icon: ShieldAlert, shortcut: "2" },
-  { to: "/monitor", label: "实时监控", icon: TrendingUp, shortcut: "3" },
-  { to: "/strategy", label: "策略优化", icon: Bot, shortcut: "4" },
-  { to: "/reports", label: "报告中心", icon: FileText, shortcut: "5" },
-  { to: "/settings", label: "系统设置", icon: Settings, shortcut: "6" },
+  { to: "/demo", label: "演示总控", icon: Compass, shortcut: "1" },
+  { to: "/dashboard", label: "总览指挥舱", icon: LayoutDashboard, shortcut: "2" },
+  { to: "/scenarios", label: "风险场景", icon: TrendingUp, shortcut: "3" },
+  { to: "/risk-response", label: "智能评估", icon: Globe, shortcut: "4" },
+  { to: "/strategy-optimizer", label: "策略优化", icon: GitBranch, shortcut: "5" },
+  { to: "/pdca", label: "执行闭环", icon: RotateCcw, shortcut: "6" },
+  { to: "/reports", label: "报告中心", icon: FileText, shortcut: "7" },
+  { to: "/sentiment", label: "舆情雷达", icon: ShieldAlert, shortcut: "8" },
+  { to: "/live", label: "实盘透视", icon: TrendingUp, shortcut: "9" },
+  { to: "/quant", label: "量化工坊", icon: Bot, shortcut: "0" },
+  { to: "/settings", label: "系统设置", icon: Settings, shortcut: "S" },
 ]
 
 const breadcrumbMap: Record<string, string> = {
-  "/dashboard": "Dashboard 总览",
+  "/demo": "课堂演示总控",
+  "/dashboard": "总览指挥舱",
   "/risk": "风险详情",
   "/monitor": "实时监控",
-  "/strategy": "策略优化",
+  "/strategy": "量化工作台",
   "/reports": "报告中心",
   "/settings": "系统设置",
   "/assistant": "AI 投研助手",
@@ -36,6 +42,10 @@ const breadcrumbMap: Record<string, string> = {
   "/sentiment": "舆情雷达",
   "/live": "实盘透视",
   "/quant": "量化工坊",
+  "/risk-response": "智能风险评估",
+  "/strategy-optimizer": "策略优化",
+  "/pdca": "执行闭环",
+  "/scenarios": "风险场景",
 }
 
 function Breadcrumbs() {
@@ -45,7 +55,7 @@ function Breadcrumbs() {
   return (
     <div className="flex items-center gap-2 text-[11px] tracking-[-0.01em]">
       <span className="breadcrumb-item">AstraQuant</span>
-      <span className="breadcrumb-separator">/</span>
+      <span className="text-[var(--text-muted)] mx-1">›</span>
       <span className="text-[var(--text)] font-medium">{label}</span>
     </div>
   )
@@ -63,7 +73,7 @@ function LiveClock() {
     <div className="flex items-center gap-2 text-[11px] text-[var(--text-muted)] border border-white/[0.06] rounded-lg px-2.5 py-1.5 bg-white/[0.02]">
       <Clock3 size={11} className="text-indigo-300/60" />
       <span className="mono-metric tabular-nums text-[var(--text-secondary)]">{time.toLocaleTimeString("zh-CN", { hour12: false })}</span>
-      <span className="text-white/[0.12]">|</span>
+      <span className="text-white/[0.12] mx-1">·</span>
       <span className="mono-metric tabular-nums text-[var(--text-secondary)]">{time.toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit" })}</span>
     </div>
   )
@@ -80,9 +90,9 @@ export function AppShell() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] overflow-x-hidden">
       <div className={cn(
-        "mx-auto grid min-h-screen w-full max-w-[1600px] transition-all duration-300",
+        "mx-auto grid min-h-screen w-full max-w-[1600px] transition-all duration-300 overflow-x-hidden",
         sidebarOpen ? "grid-cols-[236px_1fr]" : "grid-cols-[56px_1fr]"
       )}>
         {/* ── Sidebar ── */}
@@ -159,11 +169,11 @@ export function AppShell() {
                 <div className="space-y-1.5 text-[var(--text-muted)]">
                   <div className="flex items-center justify-between">
                     <span>模式</span>
-                    <span className="text-white/60">企业级 V3</span>
+                    <span className="text-white/60">课堂演示</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>数据源</span>
-                    <span className="text-white/60">实时主备</span>
+                    <span className="text-white/60">演示主备</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>延迟</span>
@@ -176,7 +186,7 @@ export function AppShell() {
         </aside>
 
         {/* ── Main content ── */}
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-screen flex-col min-w-0">
           {/* Header */}
           <header className="glass-panel-v2 sticky top-0 z-20 border-b border-[rgba(139,132,190,0.05)]">
             <div className="flex items-center justify-between gap-3 px-4 py-2.5">
@@ -187,7 +197,14 @@ export function AppShell() {
               <div className="flex items-center gap-3 flex-1 max-w-lg mx-4">
                 <div className="relative w-full">
                   <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-                  <Input className="pl-8 h-8 text-xs" placeholder="全局搜索：标的、风险事件、报告..." />
+                  <Input className="pl-8 h-8 text-xs !border-white/[0.05] !bg-white/[0.02] placeholder:text-white/20 hover:!border-white/[0.10] focus:!border-[rgba(165,153,240,0.25)]" placeholder="搜索标的、事件、报告..."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const q = (e.target as HTMLInputElement).value.trim()
+                        if (q) window.dispatchEvent(new CustomEvent("toast-info", { detail: `搜索 "${q}" 功能开发中` }))
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
@@ -232,16 +249,13 @@ export function AppShell() {
             </div>
 
             {/* Market status bar */}
-            <div className="market-status-bar flex items-center gap-4 px-4 py-1.5 text-[10px] text-[var(--text-muted)]">
+            <div className="market-status-bar flex items-center gap-3 px-4 py-1.5 text-[10px] text-[var(--text-muted)]">
               <div className="flex items-center gap-1.5">
                 <Radio size={9} className="text-emerald-400" />
                 <span>行情源在线</span>
               </div>
-              <span className="text-white/[0.10]">|</span>
               <span>最后更新: <span className="mono-metric tabular-nums text-white/50">{new Date().toLocaleTimeString("zh-CN", { hour12: false })}</span></span>
-              <span className="text-white/[0.10]">|</span>
-              <span>WS: <span className="text-emerald-400/80">已连接</span></span>
-              <span className="text-white/[0.10]">|</span>
+              <span>数据: <span className="text-amber-300/70">演示数据源</span></span>
               <span className="flex items-center gap-1.5">
                 <span className="status-dot online" style={{ width: 5, height: 5 }} />
                 系统正常
@@ -253,14 +267,14 @@ export function AppShell() {
           </header>
 
           {/* Page content */}
-          <main className="flex-1 px-6 py-6">
+          <main className="flex-1 px-6 py-6 min-w-0 overflow-x-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
-                initial={{ opacity: 0, scale: 0.98, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98, y: -4 }}
-                transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 <Outlet />
               </motion.div>
