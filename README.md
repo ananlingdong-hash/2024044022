@@ -1,55 +1,149 @@
-# AstraQuant AI - MVP Skeleton
+# 字节跳动风险监管决策平台
 
-AI 驱动股票辅助分析平台前端骨架（React 19 + TypeScript + Tailwind CSS + shadcn/ui 风格组件）。
+一个面向课堂展示的企业风险监管课程项目。项目以字节跳动 `ByteDance` 为案例对象，围绕监管合规、AI 算力、全球化经营、商业信用等风险场景，构建了从信息接入、智能评估、策略优化到 PDCA 执行闭环的可视化决策平台。
 
-## 快速启动
+## 项目定位
 
-```bash
-npm install
-cp .env.example .env
-python -m pip install -r backend/requirements.txt
-npm run backend:dev
-npm run dev
-```
+本项目不是传统的股票看盘系统，而是一个更偏企业风控与管理决策的演示平台。
 
-## 已实现骨架
+核心展示目标：
 
-- 五大模块路由：`/sentiment`、`/live`、`/quant`、`/assistant`、`/profile`
-- 深色主题变量：`--bg`、`--text`、`--brand` 等
-- 量化策略工坊闭环（信息 -> 分析 -> 策略 -> 验证）
-- MiniMax M2.7 AI 模型 API 模板
-- 数据层模板：REST 封装、WebSocket 客户端、IndexedDB 报告缓存
-- 性能优化示例：虚拟滚动 + 增量渲染
-- 安全示例：API Key 前端加密（Web Crypto）
-- 数据库设计：`database/schema.sql`
+- 把分散的市场、舆情、监管、经营和技术资源风险整合到一个统一界面
+- 用图表和交互方式解释风险来源，而不只是给出一个分数
+- 让用户看到完整决策链路：`信号接入 -> 风险评估 -> 策略生成 -> 执行闭环`
+
+## 展示亮点
+
+- 公司选择器已切换为字节跳动案例，默认展示 `ByteDance`
+- 风险场景从传统汇率/信用/供应链，升级为更贴合互联网平台企业的：
+  - 监管合规风险
+  - AI 算力供应风险
+  - 全球化经营风险
+- 总览页、场景页、报告页、策略页已经形成统一叙事
+- 报告页明确区分：
+  - 官方公开资料
+  - 监管公告
+  - 媒体估算
+  - 课堂演示参数
+- GitHub 上传前已清理 Python 缓存文件，并去除硬编码密钥
+
+## 核心页面
+
+- `演示总控`：适合课堂开场，快速介绍案例对象、风险焦点和演示路径
+- `总览指挥舱`：展示整体风险评分、风险趋势、风险构成、AI 推荐动作
+- `风险场景中心`：分为全球化经营、商业信用、AI 算力供应三大场景
+- `智能评估中心`：用 VaR、分布曲线、因子贡献和风险带解释评分
+- `策略优化`：比较保守、平衡、激进三类方案
+- `PDCA 执行闭环`：展示从方案落地到反馈复盘的过程
+- `报告中心`：输出适合汇报和展示的风险报告
 
 ## 技术栈
 
-- Frontend: React 19 + TypeScript + Tailwind CSS
-- UI: shadcn/ui 风格组件（本地实现）
-- Charts: ECharts + TradingView Lightweight Charts
-- Data: REST + WebSocket + IndexedDB
+- 前端：React 19 + TypeScript + Vite
+- UI：Tailwind CSS + 本地组件体系
+- 图表：ECharts + Lightweight Charts
+- 状态与数据：React Query + Zustand + Axios
+- 后端：FastAPI + SQLAlchemy + APScheduler
+- 数据存储：SQLite
 
-## MVP 迭代建议
+## 目录结构
 
-- Phase 1（2 周）：舆情雷达 + AI 投研助手基础版
-- Phase 2（2 周）：实盘透视 + 量化策略工坊
-- Phase 3（1 周）：个人中心 + 性能与体验优化
+```text
+src/
+  components/        前端通用组件与图表组件
+  pages/             主要业务页面
+  api/               前端接口封装
+  features/          页面数据组织与工作台逻辑
+  data/              公司风险画像等静态数据
 
-## 后端能力（已打通）
+backend/
+  app/
+    main.py          FastAPI 入口
+    services/        风险评估、市场服务、舆情与策略相关服务
+```
 
-- FastAPI 接口：`/api/market/*`、`/api/quant/backtest`、`/api/ai/*`、`/api/sentiment/*`、`/api/tasks`、`/api/profile/api-keys`
-- WebSocket：`/ws/market` 实时推送
-- 定时任务：APScheduler + Cron 表达式
-- 数据库：SQLite（`backend/data/astrquant.db`）自动建表与入库
-- 外部 AI：MiniMax 实际调用（支持诊断码与错误提示）
+## 启动方式
 
-## API Key 持久配置
+### 1. 安装前端依赖
 
-- 后端启动时会自动读取 `backend/.env`
-- 请在 `backend/.env` 填入：
-  - `MINIMAX_API_KEY=你的MiniMax Key`
-  - `MINIMAX_GROUP_ID=你的 GroupId`
-  - `MINIMAX_MODEL=MiniMax-M2.7`
-  - `MINIMAX_API_URL=https://api.minimax.chat/v1/text/chatcompletion_v2`
-- 配置一次后，后续 `npm run backend:start` 无需再手动设置环境变量
+```bash
+npm install
+```
+
+### 2. 安装后端依赖
+
+```bash
+python -m pip install -r backend/requirements.txt
+```
+
+### 3. 启动后端
+
+```bash
+npm run backend:dev
+```
+
+默认启动在 `http://127.0.0.1:8000`
+
+### 4. 启动前端
+
+```bash
+npm run dev
+```
+
+默认启动在 `http://127.0.0.1:5173`
+
+## 课堂展示建议顺序
+
+1. 从 `演示总控` 页面开场，说明项目主题与案例对象
+2. 进入 `总览指挥舱`，展示全局风险画像和 AI 推荐动作
+3. 打开 `风险场景中心`，重点讲：
+   - TikTok 美国监管风险
+   - 欧盟 DSA 合规压力
+   - AI 算力供应与数据中心保障
+4. 进入 `智能评估中心`，解释评分不是拍脑袋，而是有因子贡献和模型依据
+5. 进入 `策略优化`，对比三套方案，突出系统推荐逻辑
+6. 最后在 `报告中心` 收尾，形成完整汇报闭环
+
+## 数据说明
+
+字节跳动为非上市公司，因此项目中的财务、估值、部分业务规模数据采用公开资料与媒体估算，不等同于审计年报。
+
+本项目当前使用的数据口径包括：
+
+- ByteDance / TikTok 官方公开资料
+- 美国与欧盟监管公开信息
+- 权威媒体对非上市公司营收、估值、业务规模的公开估算
+- 为课程展示构建的风险建模参数
+
+## 当前仓库分支
+
+当前上传到 GitHub 的开发分支为：
+
+```text
+codex/upload-bytedance-platform
+```
+
+仓库主页：
+
+```text
+https://github.com/ananlingdong-hash/2024044022
+```
+
+分支地址：
+
+```text
+https://github.com/ananlingdong-hash/2024044022/tree/codex/upload-bytedance-platform
+```
+
+PR 入口：
+
+```text
+https://github.com/ananlingdong-hash/2024044022/pull/new/codex/upload-bytedance-platform
+```
+
+## 后续可继续优化
+
+- 增加首页或 README 截图，让仓库展示更完整
+- 为课堂答辩补一页系统架构图
+- 增加更清晰的数据来源标注面板
+- 补充部署说明或录屏演示链接
