@@ -11,9 +11,9 @@ function buildFallbackTimeSeries(): RiskPoint[] {
   return Array.from({ length: 48 }, (_, index) => {
     const i = 47 - index
     const t = now.subtract(i * 30, "minute")
-    const trend = 58 + Math.sin(i / 7) * 12 + Math.sin(i / 3.2) * 7
-    const shock = i > 24 && i < 33 ? 8 : 0
-    const value = Math.round(Math.max(22, Math.min(92, trend + shock + (Math.random() - 0.5) * 8)))
+    const trend = 56 + Math.sin(i / 7) * 10 + Math.sin(i / 3.2) * 6
+    const shock = i > 24 && i < 33 ? 7 : 0
+    const value = Math.round(Math.max(22, Math.min(92, trend + shock + (stableNoise(i + 5) - 0.5) * 8)))
     return { ts: t.format("HH:mm"), value }
   })
 }
@@ -51,7 +51,7 @@ export function useRiskWorkbenchData() {
   const latestReport = historyQuery.data?.[0]
 
   const sourceMeta: DataSourceMeta = {
-    source: "公开资料/媒体估算",
+    source: "腾讯公告/公开资料/课堂建模参数",
     fetchedAt: new Date().toISOString(),
     isFallback: true,
     latencyMs: tickQuery.data ? 280 : 0,
@@ -61,17 +61,17 @@ export function useRiskWorkbenchData() {
     const rows = tickQuery.data
     if (!rows?.length) {
       const now = dayjs()
-      let indexValue = 300
+      let indexValue = 360
       return Array.from({ length: 48 }, (_, idx) => {
         const t = now.subtract((47 - idx) * 30, "minute")
-        indexValue += (stableNoise(idx + 11) - 0.46) * 3.8
-        indexValue = Math.max(240, Math.min(360, indexValue))
+        indexValue += (stableNoise(idx + 11) - 0.46) * 3.2
+        indexValue = Math.max(300, Math.min(420, indexValue))
         return { ts: t.format("HH:mm"), value: Number(indexValue.toFixed(2)) }
       })
     }
     return rows.slice(-48).map((row) => ({
       ts: dayjs(row.time).format("HH:mm"),
-      value: row.price ?? (280 + stableNoise(row.time.length) * 40),
+      value: row.price ?? (350 + stableNoise(row.time.length) * 40),
     }))
   }, [tickQuery.data])
 
@@ -80,14 +80,14 @@ export function useRiskWorkbenchData() {
     if (!rows?.length) return buildFallbackTimeSeries()
     return rows.slice(-48).map((row, idx) => ({
       ts: dayjs(row.time).format("HH:mm"),
-      value: Math.max(20, Math.min(95, 60 + Math.sin(idx / 4) * 16 + (stableNoise(idx + 29) - 0.5) * 10)),
+      value: Math.max(20, Math.min(95, 58 + Math.sin(idx / 4) * 14 + (stableNoise(idx + 29) - 0.5) * 10)),
     }))
   }, [tickQuery.data])
 
   const breakdown: RiskBreakdown[] = useMemo(() => {
-    const score = latestReport?.marketSentiment ?? 68
-    const regulation = Math.max(35, Math.min(55, 45 + Math.round((score - 60) * 0.3)))
-    const compute = Math.max(24, Math.min(38, 31 + Math.round((score - 65) * 0.15)))
+    const score = latestReport?.marketSentiment ?? 66
+    const regulation = Math.max(34, Math.min(54, 43 + Math.round((score - 60) * 0.3)))
+    const compute = Math.max(24, Math.min(38, 32 + Math.round((score - 64) * 0.18)))
     const globalOps = Math.max(16, 100 - regulation - compute)
     return [
       { name: "监管合规风险", value: regulation },
@@ -97,42 +97,43 @@ export function useRiskWorkbenchData() {
   }, [latestReport?.marketSentiment])
 
   const strategyRadar: StrategyRadarMetric[] = [
-    { name: "合规确定性", conservative: 92, balanced: 78, aggressive: 55 },
-    { name: "业务连续性", conservative: 70, balanced: 84, aggressive: 90 },
+    { name: "合规确定性", conservative: 91, balanced: 78, aggressive: 56 },
+    { name: "业务连续性", conservative: 72, balanced: 84, aggressive: 89 },
     { name: "算力保障", conservative: 88, balanced: 76, aggressive: 58 },
-    { name: "成本效率", conservative: 42, balanced: 75, aggressive: 90 },
-    { name: "舆情响应", conservative: 80, balanced: 86, aggressive: 65 },
+    { name: "资本效率", conservative: 43, balanced: 75, aggressive: 90 },
+    { name: "国际韧性", conservative: 74, balanced: 82, aggressive: 68 },
   ]
 
   const supplyNodes: SupplyNode[] = [
-    { id: "腾讯控股", category: "核心企业", risk: 62 },
-    { id: "CMC监管", category: "一级风险节点", risk: 82 },
-    { id: "AI算力池", category: "一级风险节点", risk: 70 },
-    { id: "数据中心", category: "二级保障节点", risk: 46 },
-    { id: "内容审核", category: "二级保障节点", risk: 54 },
+    { id: "腾讯控股", category: "核心企业", risk: 61 },
+    { id: "监管事项", category: "一级风险节点", risk: 80 },
+    { id: "云与AI算力", category: "一级风险节点", risk: 72 },
+    { id: "数据中心", category: "二级保障节点", risk: 48 },
+    { id: "内容安全", category: "二级保障节点", risk: 52 },
   ]
+
   const supplyLinks: SupplyLink[] = [
-    { source: "腾讯控股", target: "CMC监管", weight: 9 },
-    { source: "腾讯控股", target: "AI算力池", weight: 8 },
-    { source: "AI算力池", target: "数据中心", weight: 7 },
-    { source: "CMC监管", target: "内容审核", weight: 8 },
-    { source: "内容审核", target: "数据中心", weight: 4 },
+    { source: "腾讯控股", target: "监管事项", weight: 9 },
+    { source: "腾讯控股", target: "云与AI算力", weight: 8 },
+    { source: "云与AI算力", target: "数据中心", weight: 7 },
+    { source: "监管事项", target: "内容安全", weight: 8 },
+    { source: "内容安全", target: "数据中心", weight: 4 },
   ]
 
   const kpiBullets: KpiBullet[] = [
-    { name: "监管响应SLA", actual: 82, target: 90, threshold: 70 },
-    { name: "AI算力备份覆盖", actual: 64, target: 75, threshold: 50 },
+    { name: "监管响应 SLA", actual: 84, target: 90, threshold: 70 },
+    { name: "AI 算力备份覆盖", actual: 66, target: 78, threshold: 52 },
     { name: "内容安全拦截率", actual: 96, target: 98, threshold: 92 },
   ]
 
   const suggestionCards: SuggestionCard[] =
-    (latestReport?.marketSentiment ?? 68) >= 60
+    (latestReport?.marketSentiment ?? 66) >= 60
       ? [{
           id: `tencent-risk-${latestReport?.id ?? "now"}`,
-          title: "监管窗口触发：建议启动平衡响应",
-          score: latestReport?.marketSentiment ?? 68,
-          summary: "当前风险主要来自 CMC黑名单监管、游戏版号 与 AI 算力供应，建议优先复核高确定性合规动作。",
-          actions: ["生成合规台账", "复核算力替代池", "48小时后复盘"],
+          title: "腾讯风险窗口触发：建议启动平衡响应",
+          score: latestReport?.marketSentiment ?? 66,
+          summary: "当前风险主要来自监管事项、云与 AI 算力投入以及国际化业务波动，建议优先复核高确定性合规动作。",
+          actions: ["生成监管台账", "复核算力保障池", "48小时后复盘"],
         }]
       : []
 
@@ -155,16 +156,16 @@ export function useRiskWorkbenchData() {
 
 export function subscribeRealtimeTick(onTick: (payload: { symbol: string; price: number; ts: number }) => void) {
   let active = true
-  const symbols = ["Tencent", "WeChat", "Douyin", "AI Compute"]
+  const symbols = ["Tencent", "Weixin-Eco", "Tencent-Cloud", "Intl-Games"]
   let idx = 0
-  let basePrice = 300 + Math.random() * 20
+  let basePrice = 360 + Math.random() * 20
 
   const emit = () => {
     if (!active) return
     const symbol = symbols[idx % symbols.length]
     idx += 1
-    basePrice += (Math.random() - 0.45) * 2.2
-    basePrice = Math.max(240, Math.min(360, basePrice))
+    basePrice += (Math.random() - 0.45) * 2.0
+    basePrice = Math.max(300, Math.min(420, basePrice))
     onTick({ symbol, price: Number(basePrice.toFixed(2)), ts: Date.now() })
   }
 

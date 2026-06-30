@@ -174,10 +174,10 @@ def get_stock_realtime(symbol: str) -> dict[str, Any] | None:
     数据源：腾讯行情API（免费公开）
 
     Args:
-        symbol: 股票代码如 '002594' (比亚迪), '000001' (平安银行)
+        symbol: 股票代码如 '0700' (腾讯控股), '000001' (平安银行)
 
     Returns:
-        {"symbol": "002594", "name": "比亚迪", "price": 95.88,
+        {"symbol": "0700", "name": "腾讯控股", "price": 385.20,
          "change_pct": 0.69, "volume": 31460000, "time": "15:04:12"}
     """
 
@@ -194,7 +194,7 @@ def get_stock_realtime(symbol: str) -> dict[str, Any] | None:
         return None
 
     try:
-        # 解析格式：v_sh002594="1~比亚迪~002594~95.88~..."
+    # 解析格式：v_hk00700="1~腾讯控股~00700~385.20~..."
         parts = text.split("~")
         if len(parts) < 10:
             return None
@@ -290,7 +290,7 @@ def get_supply_chain_news(keywords: list[str], max_results: int = 20) -> list[di
     数据源：Google News RSS（免费）
 
     Args:
-        keywords: 搜索关键词列表，如 ["锂矿", "碳酸锂", "比亚迪", "钴"]
+        keywords: 搜索关键词列表，如 ["腾讯", "微信", "腾讯云", "混元"]
 
     Returns:
         [{"title": "...", "link": "...", "source": "...", "published": "..."}]
@@ -383,7 +383,7 @@ def get_real_market_context() -> dict[str, Any]:
     统一获取真实市场上下文，供 risk_service 等调用
 
     Returns:
-        包含汇率、BYD行情、宏观经济指标的完整上下文
+        包含汇率、腾讯行情、宏观经济指标的完整上下文
     """
     context = {
         "fx_rates": get_fx_rates(),
@@ -401,7 +401,7 @@ def get_real_market_context() -> dict[str, Any]:
     rates = context["fx_rates"]
     if rates.get("USDCNY"):
         usd = rates["USDCNY"]
-        # 从BYD年报数据反算的近似年化波动率
+        # 基于腾讯国际业务公开信息估算的近似年化波动率
         context["annual_volatility"] = {
             "USDCNY": 0.065,
             "EURCNY": 0.072,

@@ -6,27 +6,27 @@ from datetime import datetime, timedelta
 
 UNIVERSE = [
     {"symbol": "Tencent", "name": "腾讯控股"},
-    {"symbol": "Tencent-Ads", "name": "腾讯广告"},
-    {"symbol": "Tencent-Cloud", "name": "欧盟DSA合规"},
-    {"symbol": "Tencent-Games", "name": "AI算力成本"},
-    {"symbol": "Douyin-Ads", "name": "抖音广告景气"},
-    {"symbol": "Tencent-FinTech", "name": "Tencent FinTech"},
-    {"symbol": "USD-CNY", "name": "美元敞口"},
+    {"symbol": "Weixin-Eco", "name": "微信生态活跃度"},
+    {"symbol": "Tencent-Cloud", "name": "腾讯云景气度"},
+    {"symbol": "Intl-Games", "name": "国际游戏收入热度"},
+    {"symbol": "FinTech", "name": "金融科技回款"},
+    {"symbol": "Hunyuan-AI", "name": "混元算力成本"},
+    {"symbol": "USD-CNY", "name": "美元兑人民币"},
     {"symbol": "Content-Safety", "name": "内容安全"},
-    {"symbol": "Data-Local", "name": "数据本地化"},
-    {"symbol": "Cloud-CDN", "name": "云与CDN"},
+    {"symbol": "Data-Compliance", "name": "数据合规"},
+    {"symbol": "Cloud-CDN", "name": "云与 CDN"},
 ]
 
 _BASE_LEVELS = {
-    "Tencent": 312.4,
-    "Tencent-Ads": 74.0,
-    "Tencent-Cloud": 68.5,
-    "Tencent-Games": 82.8,
-    "Douyin-Ads": 61.2,
-    "Tencent-FinTech": 77.6,
+    "Tencent": 385.2,
+    "Weixin-Eco": 141.8,
+    "Tencent-Cloud": 72.6,
+    "Intl-Games": 88.4,
+    "FinTech": 79.2,
+    "Hunyuan-AI": 68.5,
     "USD-CNY": 7.18,
     "Content-Safety": 96.3,
-    "Data-Local": 72.4,
+    "Data-Compliance": 71.4,
     "Cloud-CDN": 66.9,
 }
 
@@ -66,12 +66,12 @@ def build_ticks(symbol: str, count: int = 40) -> list[dict[str, float | str]]:
     base = _base(symbol)
     rows: list[dict[str, float | str]] = []
     for i in range(count):
-      angle = i / 6 + len(symbol) * 0.2
-      price = round(base + math.sin(angle) * 2.4 + i * 0.035, 2)
-      rows.append({
-          "time": (now - timedelta(minutes=count - i)).isoformat(),
-          "price": price,
-      })
+        angle = i / 6 + len(symbol) * 0.2
+        price = round(base + math.sin(angle) * 2.4 + i * 0.035, 2)
+        rows.append({
+            "time": (now - timedelta(minutes=count - i)).isoformat(),
+            "price": price,
+        })
     return rows
 
 

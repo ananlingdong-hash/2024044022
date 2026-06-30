@@ -9,18 +9,15 @@ interface TickerItem {
   changePercent: number
 }
 
-/** Tencent ecosystem: investees, suppliers, competitors */
 const tickers: TickerItem[] = [
-  { symbol: "0700.HK", name: "腾讯控股", price: 385.20, change: 2.80, changePercent: 0.73 },
-  { symbol: "NVDA", name: "NVIDIA(GPU供应商)", price: 892.45, change: 18.70, changePercent: 2.14 },
-  { symbol: "PDD", name: "拼多多(联营投资)", price: 142.30, change: -3.20, changePercent: -2.20 },
-  { symbol: "NTES", name: "网易(游戏竞对)", price: 98.50, change: 1.65, changePercent: 1.70 },
-  { symbol: "1024.HK", name: "快手(社交竞对)", price: 58.35, change: 1.45, changePercent: 2.55 },
-  { symbol: "BIDU", name: "百度(AI竞对)", price: 112.50, change: -0.85, changePercent: -0.75 },
-  { symbol: "9888.HK", name: "百度集团", price: 118.60, change: -1.20, changePercent: -1.00 },
-  { symbol: "META", name: "Meta(全球竞对)", price: 512.34, change: 8.67, changePercent: 1.72 },
-  { symbol: "3690.HK", name: "美团(投资/竞对)", price: 168.20, change: -1.50, changePercent: -0.88 },
-  { symbol: "1810.HK", name: "小米(生态竞对)", price: 32.45, change: 0.88, changePercent: 2.79 },
+  { symbol: "0700.HK", name: "腾讯控股", price: 385.2, change: 2.8, changePercent: 0.73 },
+  { symbol: "WECHAT", name: "微信生态活跃度", price: 141.8, change: 1.3, changePercent: 0.93 },
+  { symbol: "TENCLOUD", name: "腾讯云景气度", price: 72.6, change: 2.1, changePercent: 2.98 },
+  { symbol: "INTL-GAME", name: "国际游戏收入热度", price: 88.4, change: 1.9, changePercent: 2.20 },
+  { symbol: "FINTECH", name: "金融科技回款", price: 79.2, change: -0.6, changePercent: -0.75 },
+  { symbol: "HUNYUAN", name: "混元算力成本", price: 68.5, change: 1.5, changePercent: 2.24 },
+  { symbol: "USD/CNY", name: "美元兑人民币", price: 7.18, change: 0.03, changePercent: 0.42 },
+  { symbol: "CONTENT", name: "内容安全水位", price: 96.3, change: 0.4, changePercent: 0.42 },
 ]
 
 export function MarketTicker() {

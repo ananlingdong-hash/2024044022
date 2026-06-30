@@ -1,6 +1,19 @@
 import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { BarChart3, TrendingUp, Shield, Activity, Target, Layers, AlertTriangle, Zap, Brain, Clock3, CheckCircle2, type LucideIcon } from "lucide-react"
+import {
+  BarChart3,
+  TrendingUp,
+  Shield,
+  Activity,
+  Target,
+  Layers,
+  AlertTriangle,
+  Zap,
+  Brain,
+  Clock3,
+  CheckCircle2,
+  type LucideIcon,
+} from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { DataSourceBadge } from "@/components/charts/v2/DataSourceBadge"
@@ -24,13 +37,23 @@ function RingProgress({ value, color, size = 68, strokeWidth = 3 }: { value: num
   const circumference = 2 * Math.PI * r
   const animated = useCountUp(value, 1500)
   const offset = circumference - (animated / 100) * circumference
+
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <svg viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={strokeWidth} />
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"
-          strokeDasharray={circumference} strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 0.3s linear", filter: `drop-shadow(0 0 6px ${color}66) drop-shadow(0 0 2px ${color}99)` }} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: "stroke-dashoffset 0.3s linear", filter: `drop-shadow(0 0 6px ${color}66) drop-shadow(0 0 2px ${color}99)` }}
+        />
       </svg>
       <span className="absolute inset-0 flex items-center justify-center mono-metric text-sm font-bold" style={{ color }}>
         {animated}
@@ -61,9 +84,10 @@ function KpiSummaryCard({ item, delay }: { item: KpiSummaryItem; delay: number }
             <item.icon size={15} className={item.iconClr} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] text-[var(--text-muted)] mb-0.5">{item.label}</p>
+            <p className="mb-0.5 text-[10px] text-[var(--text-muted)]">{item.label}</p>
             <p className="mono-metric text-2xl font-bold tracking-tight" style={{ color: item.color }}>
-              {item.isFloat ? (animatedValue / 10).toFixed(1) : animatedValue / 10}{item.unit}
+              {item.isFloat ? (animatedValue / 10).toFixed(1) : animatedValue / 10}
+              {item.unit}
             </p>
           </div>
         </div>
@@ -75,36 +99,38 @@ function KpiSummaryCard({ item, delay }: { item: KpiSummaryItem; delay: number }
 export function DashboardPage() {
   const { sourceMeta, riskTrend, priceTrend, breakdown, strategyRadar, kpiBullets, suggestionCards, firstSymbol, latestReport } =
     useRiskWorkbenchData()
-  const upsertCards = useUIStore((s) => s.upsertSuggestionCards)
+  const upsertCards = useUIStore((state) => state.upsertSuggestionCards)
 
   useEffect(() => {
     if (suggestionCards.length) upsertCards(suggestionCards)
   }, [suggestionCards, upsertCards])
 
   const sentiment = latestReport?.marketSentiment ?? 55
-
   const gaugeColor = sentiment >= 70 ? "#34d399" : sentiment >= 45 ? "#fbbf24" : "#f87171"
   const sentimentDisplay = useCountUp(sentiment, 1500)
   const riskLevel = sentiment >= 70 ? "低风险" : sentiment >= 45 ? "中等风险" : "高风险"
-  const aiRecommendation = sentiment < 58 ? "建议进入平衡方案，优先复核汇率与供应链敞口。" : "风险处于可控区间，建议保持监控并等待新信号。"
-  const riskPulse = sentiment < 58 ? "触发处置观察" : "常规监控"
+  const aiRecommendation =
+    sentiment < 58
+      ? "建议进入平衡响应方案，优先覆盖监管合规与 AI 算力两类高权重风险因子。"
+      : "当前整体风险可控，建议维持监测并对国际业务、广告回款和算力成本做滚动复核。"
+  const riskPulse = sentiment < 58 ? "触发观察窗口" : "常规监控"
   const [chartBaseTime] = useState(() => Date.now())
+
   const candleRows = useMemo(
-    () => priceTrend.map((x, idx) => ({ time: new Date(chartBaseTime - (50 - idx) * 60_000).toISOString(), price: x.value })),
-    [chartBaseTime, priceTrend]
+    () => priceTrend.map((item, idx) => ({ time: new Date(chartBaseTime - (50 - idx) * 60_000).toISOString(), price: item.value })),
+    [chartBaseTime, priceTrend],
   )
 
   return (
-    <motion.section initial="initial" animate="animate" className="space-y-4 mx-auto" style={{ maxWidth: 1800 }}>
-      {/* Page header */}
+    <motion.section initial="initial" animate="animate" className="mx-auto space-y-4" style={{ maxWidth: 1800 }}>
       <motion.div variants={fadeUp}>
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,rgba(99,102,241,0.25),rgba(79,84,221,0.12))] border border-indigo-300/12 shadow-[0_0_18px_rgba(99,102,241,0.10)]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-300/12 bg-[linear-gradient(135deg,rgba(99,102,241,0.25),rgba(79,84,221,0.12))] shadow-[0_0_18px_rgba(99,102,241,0.10)]">
             <BarChart3 size={16} className="text-indigo-200" />
           </div>
           <div>
             <h1 className="text-xl font-semibold tracking-[-0.02em]">Dashboard 总览</h1>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">风险全景 · 实时监控 · 策略对比</p>
+            <p className="mt-0.5 text-xs text-[var(--text-muted)]">风险全景 · 实时监控 · 策略对比</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Badge variant="success" dot size="sm">系统正常</Badge>
@@ -121,9 +147,9 @@ export function DashboardPage() {
                 <Brain size={12} />
                 风险哨兵 Agent 已接管
               </div>
-              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">总览指挥舱</h2>
+              <h2 className="text-2xl font-semibold tracking-[-0.03em] text-white">总览指挥台</h2>
               <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">
-                系统正在汇总市场情绪、行情波动、VaR 与风险构成，形成当前组合的可执行处置建议。
+                系统正把市场情绪、风险因子、场景信号与策略建议汇总成一个适合课堂展示的管理驾驶舱。
               </p>
             </div>
 
@@ -138,7 +164,9 @@ export function DashboardPage() {
                     <span className="text-[10px] text-[var(--text-muted)]">{item.label}</span>
                     <item.icon size={13} style={{ color: item.color }} />
                   </div>
-                  <div className="mt-2 text-lg font-semibold tracking-[-0.02em]" style={{ color: item.color }}>{item.value}</div>
+                  <div className="mt-2 text-lg font-semibold tracking-[-0.02em]" style={{ color: item.color }}>
+                    {item.value}
+                  </div>
                 </div>
               ))}
             </div>
@@ -157,15 +185,13 @@ export function DashboardPage() {
         </Card>
       </motion.div>
 
-      {/* Row 0: KPI summary cards — unified compact layout */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Card 1: Risk Score with ring */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <motion.div variants={fadeUp}>
           <Card variant="cyber" padding="sm" className="glass-edge-glow h-full">
             <div className="flex items-center gap-3">
               <RingProgress value={sentiment} color={gaugeColor} size={56} strokeWidth={3} />
               <div className="min-w-0">
-                <p className="text-[10px] text-[var(--text-muted)] mb-0.5">综合风险评分</p>
+                <p className="mb-0.5 text-[10px] text-[var(--text-muted)]">综合风险评分</p>
                 <p className="mono-metric text-xl font-bold tracking-tight" style={{ color: gaugeColor }}>
                   {sentimentDisplay}
                 </p>
@@ -177,7 +203,6 @@ export function DashboardPage() {
           </Card>
         </motion.div>
 
-        {/* Cards 2-4: compact KPI summaries */}
         {([
           { icon: TrendingUp, label: "市场情绪", value: sentiment, unit: "", color: "#818cf8", bg: "bg-indigo-500/10 ring-indigo-300/15", iconClr: "text-indigo-300/80" },
           { icon: AlertTriangle, label: "活跃预警", value: sentiment < 58 ? 3 : 1, unit: "", color: sentiment < 58 ? "#fbbf24" : "#34d399", bg: sentiment < 58 ? "bg-amber-500/10 ring-amber-300/15" : "bg-emerald-500/10 ring-emerald-300/15", iconClr: sentiment < 58 ? "text-amber-300/80" : "text-emerald-300/80" },
@@ -187,10 +212,8 @@ export function DashboardPage() {
         ))}
       </div>
 
-      {/* Row 1: Main charts — 2/3 area + candle, 1/3 rose + radar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left: Risk trend area + K-line candle (stacked) */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="flex flex-col gap-4 lg:col-span-2">
           <motion.div variants={fadeUp}>
             <Card variant="cyber" padding="lg" className="scan-line">
               <div className="mb-3 flex items-center justify-between">
@@ -200,7 +223,7 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold tracking-[-0.01em]">风险趋势图</h2>
-                    <p className="text-[10px] text-[var(--text-muted)]">全息投影 · 实时更新</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">全景投影 · 实时更新</p>
                   </div>
                 </div>
                 <Badge size="sm" variant="info" className="live-badge">LIVE</Badge>
@@ -218,12 +241,12 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold tracking-[-0.01em]">实时波动监控</h2>
-                    <p className="text-[10px] text-[var(--text-muted)]">{firstSymbol} · K线序列</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">{firstSymbol} · 分钟级序列</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="status-dot online animate-status-pulse" />
-                  <span className="text-[10px] text-[var(--text-muted)] mono-metric">{firstSymbol}</span>
+                  <span className="mono-metric text-[10px] text-[var(--text-muted)]">{firstSymbol}</span>
                 </div>
               </div>
               <RealtimeCandleChart rows={candleRows} onTick={(cb) => subscribeRealtimeTick((tick) => cb(tick.price))} />
@@ -231,8 +254,7 @@ export function DashboardPage() {
           </motion.div>
         </div>
 
-        {/* Right: Rose + Radar (stacked) */}
-        <div className="lg:col-span-1 flex flex-col gap-4">
+        <div className="flex flex-col gap-4 lg:col-span-1">
           <motion.div variants={fadeUp}>
             <Card variant="cyber" padding="lg">
               <div className="mb-3 flex items-center justify-between">
@@ -242,7 +264,7 @@ export function DashboardPage() {
                   </div>
                   <div>
                     <h2 className="text-sm font-semibold tracking-[-0.01em]">风险构成</h2>
-                    <p className="text-[10px] text-[var(--text-muted)]">南丁格尔玫瑰图</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">高权重因子分布</p>
                   </div>
                 </div>
               </div>
@@ -258,8 +280,8 @@ export function DashboardPage() {
                     <Target size={13} className="text-amber-300/80" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-semibold tracking-[-0.01em]">多目标优化对比</h2>
-                    <p className="text-[10px] text-[var(--text-muted)]">雷达图</p>
+                    <h2 className="text-sm font-semibold tracking-[-0.01em]">多目标策略对比</h2>
+                    <p className="text-[10px] text-[var(--text-muted)]">稳健 / 平衡 / 增长</p>
                   </div>
                 </div>
               </div>
@@ -269,8 +291,7 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 2: KPI bullets + alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <motion.div variants={fadeUp} className="lg:col-span-2">
           <Card variant="cyber" padding="lg">
             <div className="mb-3 flex items-center justify-between">
@@ -279,8 +300,8 @@ export function DashboardPage() {
                   <Layers size={13} className="text-violet-300/80" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold tracking-[-0.01em]">KPI 仪表盘</h2>
-                  <p className="text-[10px] text-[var(--text-muted)]">子弹图</p>
+                  <h2 className="text-sm font-semibold tracking-[-0.01em]">KPI 仪表板</h2>
+                  <p className="text-[10px] text-[var(--text-muted)]">关键指标与目标对比</p>
                 </div>
               </div>
             </div>
@@ -298,17 +319,15 @@ export function DashboardPage() {
             </div>
             <div className="space-y-2">
               {[
-                { level: "high", text: "汇率波动突破阈值，建议启动对冲", time: "5分钟前" },
-                { level: "mid", text: "芯片供应链风险指数上升至61", time: "18分钟前" },
-                { level: "low", text: "信用风险指标正常，PD模型无异常", time: "42分钟前" },
-                { level: "mid", text: "AI算力备份覆盖率低于目标阈值", time: "1小时前" },
+                { level: "high", text: "监管事项热度上升，建议启动专项复核", time: "5 分钟前" },
+                { level: "mid", text: "AI 算力保障指数升至 61，需要检查替代池容量", time: "18 分钟前" },
+                { level: "low", text: "商业信用指标保持稳定，回款节奏正常", time: "42 分钟前" },
+                { level: "mid", text: "国际业务美元敞口偏高，建议复核短周期对冲", time: "1 小时前" },
               ].map((alert, i) => (
                 <div key={i} className="rounded-lg border border-white/[0.05] bg-white/[0.02] px-3 py-2.5 text-xs transition hover:border-white/[0.10]">
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="mb-1 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${
-                        alert.level === "high" ? "bg-rose-400 animate-status-pulse" : alert.level === "mid" ? "bg-amber-400" : "bg-emerald-400"
-                      }`} />
+                      <span className={`inline-block h-1.5 w-1.5 rounded-full ${alert.level === "high" ? "bg-rose-400 animate-status-pulse" : alert.level === "mid" ? "bg-amber-400" : "bg-emerald-400"}`} />
                       <span className="font-medium text-[var(--text)]">{alert.text}</span>
                     </div>
                   </div>

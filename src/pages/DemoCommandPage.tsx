@@ -21,10 +21,10 @@ import { cn } from "@/lib/utils"
 import { activeCompanyProfile, companyRiskProfiles } from "@/data/companyRiskProfiles"
 
 const decisionSteps = [
-  { label: "风险信号接入", desc: "接入监管政策、全球舆情、产品经营与币种敞口信号", icon: Radar, color: "text-cyan-300", route: "/scenarios" },
+  { label: "风险信号接入", desc: "接入监管政策、国际业务、平台经营与技术资源信号", icon: Radar, color: "text-cyan-300", route: "/scenarios" },
   { label: "智能风险评估", desc: "用 VaR、压力测试、因子贡献与爆发窗口解释风险", icon: Brain, color: "text-amber-300", route: "/risk-response" },
-  { label: "策略优化推荐", desc: "生成合规防御、平衡响应、增长优先三套可执行方案", icon: GitBranch, color: "text-indigo-300", route: "/strategy-optimizer" },
-  { label: "PDCA 执行闭环", desc: "审批、执行、KPI 检查与复盘优化形成课堂展示闭环", icon: ClipboardList, color: "text-emerald-300", route: "/pdca" },
+  { label: "策略优化推荐", desc: "生成稳健、平衡、增长三套可执行应对方案", icon: GitBranch, color: "text-indigo-300", route: "/strategy-optimizer" },
+  { label: "PDCA 执行闭环", desc: "把审批、执行、KPI 检查与复盘串成完整展示链路", icon: ClipboardList, color: "text-emerald-300", route: "/pdca" },
 ]
 
 function toneClass(tone: string) {
@@ -42,11 +42,11 @@ export function DemoCommandPage() {
   const company = activeCompanyProfile
 
   const demoScript = [
-    `先展示公司选择器：本平台支持企业切换，本次案例锁定${company.name}。`,
-    "切入风险场景：从监管政策、全球舆情、经营敞口与供应链压力讲起。",
+    `先展示公司选择器：本次课堂演示锁定 ${company.name}。`,
+    "切入风险场景中心：从监管合规、国际业务敞口、商业信用与 AI 算力开始讲。",
     "触发智能评估：解释综合评分、因子贡献、VaR 和风险爆发窗口。",
-    "进入策略优化：对比三套方案，强调为什么系统推荐最优响应。",
-    "最后进入报告中心：输出一份可汇报、可追溯、带数据来源的风险报告。",
+    "进入策略优化：对比三套方案，强调系统为什么推荐平衡响应。",
+    "最后进入报告中心：输出一份可汇报、可追溯、带数据来源说明的结论报告。",
   ]
 
   return (
@@ -57,13 +57,12 @@ export function DemoCommandPage() {
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-300/18 bg-emerald-400/[0.06] px-3 py-1 text-[11px] text-emerald-200">
                 <span className="status-dot online" />
-                课堂演示模式已就绪
+                课堂展示模式已就绪
               </div>
-              <h1 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-white">
-                企业风险监管决策平台
-              </h1>
+              <h1 className="text-3xl font-semibold leading-tight tracking-[-0.03em] text-white">企业风险监管决策平台</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-                围绕 {company.nameEn} 的监管合规、AI 算力、全球化经营与商业化风险，将公开信息和估算指标转化为可解释评估、策略方案和 PDCA 执行闭环。
+                围绕 {company.nameEn} 的监管合规、云与 AI 算力、全球化经营与商业信用风险，
+                把公开信息与建模参数转化为可解释评估、策略方案和 PDCA 执行闭环。
               </p>
             </div>
             <Badge variant="brand" size="sm">AstraQuant Demo</Badge>
@@ -72,17 +71,19 @@ export function DemoCommandPage() {
           <div className="mt-6 rounded-2xl border border-white/[0.06] bg-white/[0.025] p-4">
             <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-white">
               <Database size={14} className="text-indigo-300" />
-              公司选择
+              公司画像
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-[260px_1fr]">
               <select
                 value={company.id}
                 className="h-11 rounded-xl border border-indigo-300/18 bg-[#141127] px-3 text-sm text-white outline-none"
                 aria-label="选择公司"
-                readOnly
+                disabled
               >
                 {companyRiskProfiles.map((item) => (
-                  <option key={item.id} value={item.id}>{item.name} ({item.nameEn})</option>
+                  <option key={item.id} value={item.id}>
+                    {item.name} ({item.nameEn})
+                  </option>
                 ))}
               </select>
               <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
@@ -114,7 +115,7 @@ export function DemoCommandPage() {
             </Link>
             <Link to="/dashboard" className="focus-outline inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] px-5 text-sm font-medium text-[var(--text-secondary)] transition hover:border-white/[0.16] hover:bg-white/[0.08] hover:text-white">
               <BarChart3 size={15} />
-              查看总览指挥舱
+              查看总览指挥台
             </Link>
           </div>
         </Card>
@@ -125,26 +126,26 @@ export function DemoCommandPage() {
               <ShieldAlert size={15} className="text-rose-300" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold tracking-[-0.01em]">今日核心风险事件</h2>
-              <p className="text-[10px] text-[var(--text-muted)]">适合课堂开场的业务冲突</p>
+              <h2 className="text-sm font-semibold tracking-[-0.01em]">今日核心风险主题</h2>
+              <p className="text-[10px] text-[var(--text-muted)]">适合课堂开场的冲突点</p>
             </div>
           </div>
 
           <div className="mt-5 rounded-xl border border-rose-300/14 bg-rose-400/[0.04] p-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-medium text-rose-100">CMC黑名单监管不确定性升高</span>
+              <span className="text-xs font-medium text-rose-100">监管合规与 AI 投入压力同步抬升</span>
               <span className="rounded-full bg-rose-400/12 px-2 py-0.5 text-[10px] text-rose-200">高关注</span>
             </div>
             <p className="mt-3 text-xs leading-5 text-[var(--text-muted)]">
-              美国剥离/禁令时间表、游戏版号 调查和 AI 算力约束形成联动压力。系统建议在 48 小时窗口内完成合规响应、算力替代和舆情预案联动评估。
+              当前更适合把故事讲成“平台型科技企业如何在监管、增长和算力投入之间做平衡”，这样比单一财务评分更高级，也更像真实管理决策。
             </p>
           </div>
 
           <div className="mt-5 space-y-3">
             {[
               ["当前公司", company.name, company.status],
-              ["综合风险", "68.2", "监管因子贡献最高"],
-              ["推荐策略", "平衡响应", "合规防御 + 算力替代 + 舆情预案"],
+              ["综合风险", "68.2", "监管与算力因子权重较高"],
+              ["推荐策略", "平衡响应", "合规专项 + 算力保障 + 分区域阈值"],
             ].map(([label, value, detail]) => (
               <div key={label} className="flex items-center justify-between border-b border-white/[0.05] pb-3 last:border-b-0">
                 <div>
@@ -161,8 +162,8 @@ export function DemoCommandPage() {
       <Card variant="cyber" padding="lg">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold tracking-[-0.01em]">端到端演示路径</h2>
-            <p className="mt-1 text-[11px] text-[var(--text-muted)]">按这个顺序展示，观众会看到一个完整 AI 风险监管闭环。</p>
+            <h2 className="text-sm font-semibold tracking-[-0.01em]">端到端展示路径</h2>
+            <p className="mt-1 text-[11px] text-[var(--text-muted)]">按这个顺序展示，老师会看到一个完整的 AI 风险监管闭环。</p>
           </div>
           <div className="hidden items-center gap-1.5 text-[10px] text-[var(--text-muted)] md:flex">
             <Activity size={12} className="text-emerald-300/70" />
@@ -211,7 +212,11 @@ export function DemoCommandPage() {
             <h2 className="text-sm font-semibold tracking-[-0.01em]">展示亮点</h2>
           </div>
           <div className="space-y-3">
-            {["不是单点预测，而是监管、经营、算力、舆情的完整决策链路", "明确标注公开数据与估算数据，展示可信度更高", "每一步都有图表、策略和可执行结果"].map((item) => (
+            {[
+              "不是单点预测，而是监管、经营、算力、信用的完整决策链路。",
+              "明确区分官方披露数据和课堂建模参数，可信度更高。",
+              "每一步都有图表、解释和可执行动作，展示感很强。",
+            ].map((item) => (
               <div key={item} className="flex items-start gap-2 text-xs leading-5 text-[var(--text-secondary)]">
                 <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-300/80" />
                 {item}

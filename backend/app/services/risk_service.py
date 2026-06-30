@@ -349,7 +349,7 @@ def evaluate_risk(
         "var_method": "Harrell-Davis分位数估计器，避免简单排序偏差",
         "time_decay": "风险评分含指数时间衰减因子，半衰期24小时",
         "confidence_level": f"VaR置信度{int(confidence*100)}%，CVaR为尾部条件期望",
-        "data_source": f"以腾讯控股(Tencent)公开资料、监管公告与媒体估算数据为基础；腾讯控股未上市，财务与估值参数均为公开估算口径",
+        "data_source": f"以腾讯控股(Tencent)年度业绩公告、年报、监管公开信息与课堂建模参数为基础；腾讯为上市公司，核心财务指标优先采用官方披露口径",
         "company_context": f"营收¥{TENCENT_COMPANY['total_revenue_cny']/1e8:.0f}亿 | 净利润¥{TENCENT_COMPANY['net_profit_parent_cny']/1e8:.0f}亿 | 资产负债率{TENCENT_COMPANY['asset_liability_ratio']:.1%}",
     }
 
